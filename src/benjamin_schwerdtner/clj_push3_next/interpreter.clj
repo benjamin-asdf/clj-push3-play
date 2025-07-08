@@ -33,12 +33,45 @@
 (defn handle-name
   "Handle a push identifier.
   "
-  [state name]
-  (if-let [v (get state :bindings name)]
-    ;; the bound value is pushed to the exec stack
-    (stack/push state :push/exec v)
-    ;; if the name was not encountered before, push it on the name stack
-    (stack/push state :push/name name)))
+  [state identifier]
+  (->
+   (if
+       ;; When the name-quoted flag is set, a identifier is pushed onto the NAME stack
+       (::name-quoted? state)
+       (stack/push state :push/name identifier)
+
+       (if-let [v (get state :bindings identifier)]
+         ;; the bound value is pushed to the exec stack
+         (stack/push state :push/exec v)
+         ;; if the identifier was not encountered before, push it on the NAME stack
+         (stack/push state :push/name identifier)))
+
+   (assoc ::name-quoted? false)))
+
+
+(instructions/register-instruction
+ {:sym-name 'name_quote
+  :in []
+  :out :state
+  :doc "The next name is pushed on the NAME stack, regardless of whether it is bound or not.
+Presumably for redefinition."
+  :f (fn [state] (assoc state ::name-quoted? true))})
+
+(instructions/register-instruction
+ {:sym-name 'code_quote
+  :in []
+  :out :state
+  :doc "CODE.QUOTE causes the next encountered piece of code, whatever it is, to be pushed onto the CODE stack rather than being executed.
+
+NOTE: this moves the next item in the EXEC stack to the CODE stack.
+"
+  :f (fn [state]
+       ;; the existence of the EXEC stack permits a simpler implementation: simply move the top item of the EXEC stack to the CODE stack
+       (let [item (stack/peek-item state :push/exec)]
+         (-> state
+             (stack/pop-item :push/exec)
+             (stack/push :push/code item))))})
+
 
 (defn execute
   [state program]

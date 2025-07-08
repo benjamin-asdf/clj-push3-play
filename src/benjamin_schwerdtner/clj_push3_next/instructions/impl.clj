@@ -59,7 +59,12 @@
   "Defines the identifier `push-name` as an instruction that
   puts the value onto the exec stack."
   [state push-name value]
-  (assoc-in state [:bound-names push-name] value))
+  (assoc-in state [:bindings push-name] value))
+
+
+;; -------------------------------
+
+
 
 (comment
   ;; ---------------------
