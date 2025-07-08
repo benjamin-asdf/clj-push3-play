@@ -1,10 +1,9 @@
 (ns benjamin-schwerdtner.clj-push3-next.interpreter
   (:require
-   [benjamin-schwerdtner.clj-push3-next.pushstate :as stack]
-   [benjamin-schwerdtner.clj-push3-next.prot :as prot]
-   [benjamin-schwerdtner.clj-push3-next.instructions.interface
-    :as instructions
-    ]))
+    [benjamin-schwerdtner.clj-push3-next.pushstate :as stack]
+    [benjamin-schwerdtner.clj-push3-next.prot :as prot]
+    [benjamin-schwerdtner.clj-push3-next.instructions.interface :as
+     instructions]))
 
 ;; -
 ;; https://faculty.hampshire.edu/lspector/push3-description.html
@@ -15,7 +14,7 @@
 ;; =============================
 
 (defn push-to-exec-stack [state p]
-  (stack/push state :exec p))
+  (stack/push state :push/exec p))
 
 (defn typeof-item
   "Returns the type of the item, as a keyword."
@@ -26,29 +25,30 @@
   (stack/push state (typeof-item item) item))
 
 (defn name? [item]
-  (= :push-type/name (typeof-item item)))
+  (= :push/name (typeof-item item)))
 
 (defn literal? [p]
-  (not (#{:push-type/name :push-type/code} (typeof-item p))))
+  (not (#{:push/name :push/code} (typeof-item p))))
 
 (defn handle-name
-  ""
+  "Handle a push identifier.
+  "
   [state name]
   (if-let [v (get state :bindings name)]
     ;; the bound value is pushed to the exec stack
-    (stack/push state :exec v)
+    (stack/push state :push/exec v)
     ;; if the name was not encountered before, push it on the name stack
-    (stack/push state :push-type/name name)))
+    (stack/push state :push/name name)))
 
 (defn execute
   [state program]
   ;; using the Push EXEC stack for recursion, inside Push
-  (let [state (stack/push state :exec program)]
+  (let [state (stack/push state :push/exec program)]
     (loop [state state]
-      (if (empty? (-> state :stacks :exec))
+      (if (empty? (-> state :stacks :push/exec))
         state
-        (recur (let [item (stack/peek-item state :exec)
-                     state (stack/pop-item state :exec)
+        (recur (let [item (stack/peek-item state :push/exec)
+                     state (stack/pop-item state :push/exec)
                      instruction (instructions/instruction item)]
                  (cond
                    instruction
@@ -60,9 +60,23 @@
                    (literal? item) (push-to-stack state item)
                    ;; item is a list
                    :else (reduce (fn [state p]
-                                   (stack/push state :exec p))
+                                   (stack/push state :push/exec p))
                                  state
                                  ;; reverse, so the first item in
                                  ;; the list is the first exec
                                  ;; instruction
                                  (reverse item)))))))))
+
+
+
+
+
+
+
+
+
+
+(comment
+
+
+  )
