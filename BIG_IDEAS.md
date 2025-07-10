@@ -16,7 +16,7 @@
 - Elegance is mysterious, hangs together with truth, scientific discovery and art. 
 - In pure math, an 'elegant' program is sometimes the shortest computer program with a certain input-output, given an axiomatic system A.
 
-- The best source code is usually not the shortest. But Utilizing the material at hand, and doing so with a 'sensibleness', and 'straight forwardness'; 
+- The best source code is usually not the shortest. But has to do with utilizing the material at hand, and doing so with a 'sensibleness', and 'straight forwardness'; 
 - The best source code displays 'artistic swag', 'conscinitious' or 'technical sweetness'. 
 
 - One idea would be that by modeling real-world resources, combining 'short' and 'frugal' would yield a notion of elegance closer to the one 
