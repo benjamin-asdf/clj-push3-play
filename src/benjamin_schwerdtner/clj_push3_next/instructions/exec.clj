@@ -2,6 +2,7 @@
   (:require
    [benjamin-schwerdtner.clj-push3-next.instructions.impl :refer
     [register-instruction] :as impl]
+   [benjamin-schwerdtner.clj-push3-next.util :refer [ensure-list]]
    [benjamin-schwerdtner.clj-push3-next.pushstate :as stack]))
 
 (register-instruction
@@ -16,8 +17,22 @@
 ;; Very similar to code.do*range, but operates on the EXEC stack.
 
 (defn do-range
-  ""
-  [state code-to-do current-index destination-index]
+  "EXEC.DO*RANGE:
+
+  An iteration instruction that executes the top item on the EXEC stack a number of times that depends on the top two integers,
+  while also pushing the loop counter onto the INTEGER stack for possible access during the execution of the body of the loop.
+
+
+  This is similar to CODE.DO*COUNT except that it takes its code argument from the EXEC stack.
+
+  The top integer is the \"destination index\" and the second integer is the \"current index.\"
+
+  Note that the range is inclusive of both endpoints.
+  "
+
+
+  [state code-to-do destination-index current-index]
+  ;; First the code and the integer arguments are saved locally and popped.
   (let [increment (cond (< current-index destination-index) 1
                         (> current-index destination-index) -1
                         :else 0)
@@ -26,12 +41,19 @@
                        (stack/push
                         state
                         :push/exec
-                        (list (+ current-index increment)
-                              destination-index
-                              ;; this is flipped from code?
-                              'exec_do*range
-                              code-to-do
-                              )))]
+                        (list
+                         ;; first a recursive call to EXEC.DO*RANGE
+                         ;; with the same code and destination index,
+                         ;; but with a current index that has been either incremented or decremented by 1 to be closer to the destination index
+                         (+ current-index increment)
+                         destination-index
+                         'exec_do*range
+                         ;; ------------------------------------
+                         ;; and then the body code.
+                         code-to-do
+                         )))]
+    ;; If the integers are equal then the current index is pushed onto the INTEGER stack
+    ;; and the code (which is the \"body\" of the loop) is pushed onto the EXEC stack
     (->
      continuation
      ;; push the current index
@@ -39,18 +61,37 @@
      ;; push the to-do
      (stack/push :push/exec code-to-do))))
 
+
 ;; do count
 
 (defn do-count
-  ""
+  "
+    EXEC.DO*COUNT: An iteration instruction that performs a loop (the body of which is taken from the EXEC stack) the number of times indicated by the INTEGER argument,
+  pushing an index (which runs from zero to one less than the number of iterations) onto the INTEGER stack prior to each execution of the loop body.
+
+
+  This is similar to CODE.DO*COUNT except that it takes its code argument from the EXEC stack.
+
+  This should be implemented as a macro that expands into a call to EXEC.DO*RANGE.
+
+  EXEC.DO*COUNT takes a single INTEGER argument (the number of times that the loop will be executed) and a single EXEC argument (the body of the loop).
+
+  If the provided INTEGER argument is negative or zero then this becomes a NOOP.
+
+  Otherwise it expands into:
+  ( 0 <1 - IntegerArg> EXEC.DO*RANGE <ExecArg> )
+
+  "
   [state integer code]
   (if (<= integer 0)
     state
     (-> state
         (stack/push
          :push/exec
-         (list 0 (dec integer) code 'exec_do*range code)))))
+         (list 0 (dec integer) 'exec_do*range code)))))
 
+
+;; note this has a different order from the code.do*count version
 
 (defn do-times
   "Same as [[do-count]],
@@ -62,14 +103,16 @@
   (if (<= integer 0)
     state
     (let [code
-          (conj (coerce-list code) 'integer_pop)]
+          (conj (ensure-list code) 'integer_pop)]
       (->
        state
        (stack/push
         :push/exec
-        (list 0 (dec integer) code 'exec_do*range))))))
+        (list 0 (dec integer) 'exec_do*range code))))))
 
 
+;; (conj (list 2) 'foo)
+;; (conj '(foo) (list 2))
 
 (register-instruction
  {:sym-name 'exec_do*range
@@ -89,14 +132,7 @@
   :doc "Execute the code at the top of exec n times.
 Where n is the top item of the Integer stack.
 
-This expands to a
-
-
-
-
-
-
-
+This expands to a call to exec_do*range
 "})
 
 (register-instruction
@@ -133,45 +169,34 @@ otherwise it recursively executes the first item of the CODE stack."
 
 ;; EXEC.S: The Push implementation of the "S combinator". Pops 3 items from the EXEC stack, which we will call A, B, and C (with A being the first one popped). Then pushes a list containing B and C back onto the EXEC stack, followed by another instance of C, followed by another instance of A.
 
+(register-instruction
+ {:sym-name 'exec_s
+  :in [:push/exec :push/exec :push/exec]
+  :out :state
+  :f (fn [state a b c]
+
+       ;; (S a b c)
+       ;; =>
+       ;; (a c (b c))
+
+       (->
+        (stack/push state :push/exec (list b c))
+        (stack/push :push/exec c)
+        (stack/push :push/exec a)))
+  :doc "EXEC.S: The Push implementation of the \"S combinator\". Pops 3 items from the EXEC stack, which we will call A, B, and C (with A being the first one popped). Then pushes a list containing B and C back onto the EXEC stack, followed by another instance of C, followed by another instance of A."})
 
 
-
-
-
-
-
-;; EXEC.SHOVE: Inserts the top EXEC item "deep" in the stack, at the position indexed by the top INTEGER. This may be thought of as a "DO LATER" instruction.
-;; EXEC.STACKDEPTH: Pushes the stack depth onto the INTEGER stack.
-;; EXEC.SWAP: Swaps the top two items on the EXEC stack.
 ;; EXEC.Y: The Push implementation of the "Y combinator". Inserts beneath the top item of the EXEC stack a new item of the form "( EXEC.Y <TopItem> )".
-;; EXEC.YANK: Removes an indexed item from "deep" in the stack and pushes it on top of the stack. The index is taken from the INTEGER stack. This may be thought of as a "DO SOONER" instruction.
-;; EXEC.YANKDUP: Pushes a copy of an indexed item "deep" in the stack onto the top of the stack, without removing the deep item. The index is taken from the INTEGER stack.
 
 
+(register-instruction
+ {:sym-name 'exec_y
+  :in [:push/exec]
+  :out :push/exec
+  :f (fn [state top-item]
+       (stack/push state :push/exec (list 'exec_y top-item)))
+  :doc "EXEC.Y: The Push implementation of the \"Y combinator\". Inserts beneath the top item of the EXEC stack a new item of the form \"( EXEC.Y <TopItem> )\"."})
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-;; EXEC.DEFINE: Defines the name on top of the NAME stack as an instruction that will push the top item of the EXEC stack back onto the EXEC stack.
-
-;; EXEC.DUP: Duplicates the top item on the EXEC stack. Does not pop its argument (which, if it did, would negate the effect of the duplication!). This may be thought of as a "DO TWICE" instruction.
-;; EXEC.FLUSH: Empties the EXEC stack. This may be thought of as a "HALT" instruction.
-
-;; EXEC.POP: Pops the EXEC stack. This may be thought of as a "DONT" instruction.
-
-
-;; EXEC.ROT: Rotates the top three items on the EXEC stack, pulling the third item out and pushing it on top. This is equivalent to "2 EXEC.YANK".
 
 
 

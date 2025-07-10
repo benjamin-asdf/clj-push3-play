@@ -16,7 +16,7 @@
      successive args are `:in` arguments.
 
   "
-  [state {:push.instruction/keys [in out f] :as instr}]
+  [state {:as instr :push.instruction/keys [in out f]}]
   (let [in-vals-info (reduce (fn [[s vs] t]
                                (let [stack (-> s
                                                :stacks
@@ -25,23 +25,26 @@
                                    (ensure-reduced ::empty)
                                    [(update-in s [:stacks t] pop)
                                     (conj vs (peek stack))])))
-                             [state []]
-                             in)]
+                       [state []]
+                       in)]
     (if (= in-vals-info ::empty)
       ;; NOOP
       ;;
       state
       (let [[state in-vals] in-vals-info
-            _ (def state state)
-            _ (def in-vals in-vals)
-            _ (def f f)
-            _ (def instr instr)
-            outcome (apply f state in-vals)]
+            [outcome err?] (try
+                             [(apply f state in-vals) false]
+                             (catch Exception e
+                               (if (:exceptions-are-warnings? state)
+                                 (binding [*out* *err*] (println e))
+                                 (throw e))
+                               [nil true]))]
         (cond
-          (= out :state)
-          outcome
-          :else
-          (update-in state [:stacks out] conj outcome))))))
+          ;; Exceptions are NOOPS, still pop the args and make
+          ;; program go forward.
+          err? state
+          (= out :state) outcome
+          :else (update-in state [:stacks out] conj outcome))))))
 
 (defonce instruction-table (atom {}))
 

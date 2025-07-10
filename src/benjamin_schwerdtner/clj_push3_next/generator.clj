@@ -9,8 +9,6 @@
 ;; #4 Implement Algorithmic mutation (like G. Chaitin), start with '()
 ;;
 
-
-
 ;; ----------------------
 
 (defn all-identifiers [state]
@@ -46,7 +44,7 @@
 (def default-generators
   [(fn [] (rand-nth [true false]))
    (fn [] (rand-int 100))
-   (fn [] (gensym "gen_push_sym"))
+   (fn [] (gensym "push_gensym_"))
    ;; clj-objects
    (fn [] (rand-nth [{} #{} [] nil]))])
 
@@ -54,9 +52,6 @@
   [state]
   (concat default-generators
           [(fn [] (rand-nth (into [] (all-identifiers state))))]))
-
-
-
 
 
 

@@ -5,26 +5,29 @@
 
 (extend-protocol PushValue
   java.lang.String
-  (m-typeof-item [this] :push/string)
+  (m-typeof-item [_this] :push/string)
   java.lang.Boolean
-  (m-typeof-item [this] :push/boolean)
+  (m-typeof-item [_this] :push/boolean)
   java.lang.Integer
-  (m-typeof-item [this] :push/integer)
+  (m-typeof-item [_this] :push/integer)
   java.lang.Long
-  (m-typeof-item [this]
-    :push/long
+  (m-typeof-item [_this]
+    ;; :push/long
     :push/integer)
   java.lang.Float
-  (m-typeof-item [this] :push/float)
+  (m-typeof-item [_this] :push/float)
   java.lang.Double
-  (m-typeof-item [this] :push/double)
+  (m-typeof-item [_this]
+    ;; :push/double
+    :push/float
+    )
   java.util.List
-  (m-typeof-item [this] :push/code)
+  (m-typeof-item [_this] :push/code)
   clojure.lang.Symbol
-  (m-typeof-item [this] :push/name)
+  (m-typeof-item [_this] :push/name)
   java.lang.Character
-  (m-typeof-item [this] :push/char)
+  (m-typeof-item [_this] :push/char)
   Object
-  (m-typeof-item [this] :push/clj-object)
+  (m-typeof-item [_this] :push/clj-object)
   nil
-  (m-typeof-item [this] :push/clj-object))
+  (m-typeof-item [_this] :push/clj-object))

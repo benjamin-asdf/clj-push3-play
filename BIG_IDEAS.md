@@ -7,17 +7,27 @@
 
 # Elegance Is The Missing Link Between Aesthetics, Art, Science, Creativity
 
-- Elegance is the property of good design. 
+- Elegance is the property of good design (in Software design). 
 - The Vitruvian Triad is "durability, convenience, and beauty".
 - Elegance is pragmatic, useful and *delightful*. 
 - Elegance is mysterious, hangs together with truth, scientific discovery and art. 
-- The best source code is usually not the shortest. But source code that displays 'artistic swag', 'conscinitious' or 'technical sweetness'. 
+- In pure math, an 'elegant' program is sometimes the shortest computer program with a certain input-output, given an axiomatic system A.
 
-- In an epheremal notion beyond simplicity, the best design is self evident.
+- The best source code is usually not the shortest. But Utilizing the material at hand, and doing so with a 'sensibleness', and 'straight forwardness'; 
+- The best source code displays 'artistic swag', 'conscinitious' or 'technical sweetness'. 
+
+- One idea would be that by modeling real-world resources, combining 'short' and 'frugal' would yield a notion of elegance closer to the one 
+  in computer programing.
+
+- Beyond simplicity, the best design is self evident. Self-evidence is the true swag, beyond even beauty. 
+- Leonardo da Vinci: "Simplicity is the ultimate sophistication". 
+
 
 - Elegance in biology in my feel has something to do with the range of possible uses of a thing. An elegant design is one that let's one 
   *win* in the future. 
 - Like planning for the unplanned to occur. Because problem solving in the real world is open ended. 
+- G. Chaitin points out that adaptationism get's the open endedness, the 'keeps on going' part of evolution wrong!
+- Therefore, the problems of creativity and open endedness truly are at the cutting edge of theoretical evolutionary biology also.
 
 - Elegance is a creative problem and therefore open ended. I.e. there is no 'most elegant' solution to anything.
 - The same way as we can always find out better theories of the world (Popper), we can find new creative ways of solving problems. 

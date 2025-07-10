@@ -198,7 +198,7 @@
   Executes the code to do at leas once.
 
   "
-  [state code-to-do current-index destination-index]
+  [state code-to-do destination-index current-index]
   (let [increment (cond (< current-index destination-index) 1
                         (> current-index destination-index) -1
                         :else 0)

@@ -46,7 +46,6 @@
 
    (assoc ::name-quoted? false)))
 
-
 (instructions/register-instruction
  {:sym-name 'name_quote
   :in []
@@ -70,32 +69,68 @@ NOTE: this moves the next item in the EXEC stack to the CODE stack.
              (stack/pop-item :push/exec)
              (stack/push :push/code item))))})
 
-(defn execute
+;; using the Push EXEC stack for recursion, inside Push
+
+
+(defn execute-load
   [state program]
-  ;; using the Push EXEC stack for recursion, inside Push
-  (let [state (stack/push state :push/exec program)]
-    (loop [state state]
-      (if (empty? (-> state :stacks :push/exec))
-        state
-        (recur (let [item (stack/peek-item state :push/exec)
-                     state (stack/pop-item state :push/exec)
-                     instruction (instructions/instruction item)]
-                 (cond
-                   (not= instruction :no-instruction)
-                   (instructions/execute-instruction state instruction)
+  (stack/push state :push/exec program))
 
-                   (name? item)
-                   (handle-name state item)
+(defn execute-1
+  [state]
+  (if (empty? (-> state
+                  :stacks
+                  :push/exec))
+    state
+    (let [item (stack/peek-item state :push/exec)
+          state (stack/pop-item state :push/exec)
+          ;; every exec pop call is +1 :exec-counter
+          state (update state :exec-counter (fnil inc 0))
+          instruction (instructions/instruction item)]
+      (cond (not= instruction :no-instruction)
+              (instructions/execute-instruction state instruction)
+            (name? item) (handle-name state item)
+            (literal? item) (push-to-stack state item)
+            ;; item is a list
+            :else (reduce (fn [state p]
+                            (stack/push state :push/exec p))
+                    state
+                    ;; reverse, so the first item in
+                    ;; the list is the first exec
+                    ;; instruction
+                    (reverse item))))))
 
-                   (literal? item) (push-to-stack state item)
-                   ;; item is a list
-                   :else (reduce (fn [state p]
-                                   (stack/push state :push/exec p))
-                                 state
-                                 ;; reverse, so the first item in
-                                 ;; the list is the first exec
-                                 ;; instruction
-                                 (reverse item)))))))))
+(defn execute
+  "Entry point for Push3 execution.
+
+  `program`: A Push3 program. A list of Push3 instructions and literals.
+
+  `state`: presumably from [[setup-state]].
+
+
+  Opts:
+
+  `max-executions`: Stop executions after this count of EXEC stack pops.
+
+
+  ---------
+
+  https://faculty.hampshire.edu/lspector/push3-description.html
+
+  "
+
+
+  ([state program] (execute state program {}))
+  ([state program {:keys [max-executions]}]
+   (let [state (execute-load state program)]
+     (loop [state (assoc state :exec-counter 0)]
+       (if (or (when max-executions
+                 (<= max-executions (:exec-counter state)))
+               (empty? (-> state
+                           :stacks
+                           :push/exec)))
+         state
+         (recur (execute-1 state)))))))
 
 
 ;; ---
@@ -109,13 +144,12 @@ NOTE: this moves the next item in the EXEC stack to the CODE stack.
                    :push/char []
                    :push/clj-object []
                    :push/code []
-                   :push/double []
                    :push/exec []
                    :push/float []
                    :push/integer []
-                   :push/long []
                    :push/name []
                    :push/string []}}))
+
 
 (comment
   (execute (setup-state) '(true false boolean_and))
@@ -136,25 +170,11 @@ NOTE: this moves the next item in the EXEC stack to the CODE stack.
 
 
 
-
-
-
-
-
   (->
    (execute
     (setup-state)
     '(2 2 integer_+))
    :stacks)
-
-  (->
-   (execute
-    (setup-state)
-    (list 'exec_do*times 2 2))
-   :stacks)
-
-
-
   (->
    (execute
     (setup-state)
@@ -168,10 +188,6 @@ NOTE: this moves the next item in the EXEC stack to the CODE stack.
    :stacks)
 
 
-
-
-
-
   (->
    (execute
     (setup-state)
@@ -179,13 +195,210 @@ NOTE: this moves the next item in the EXEC stack to the CODE stack.
    :stacks)
 
   (->
-   (execute
+   (execute-1
     (setup-state)
     (list 3 'exec_do*times 2))
    :stacks)
 
 
+  (->
+   (execute-load (setup-state) (list 3 'exec_do*times 2))
+   (execute-1)
+   (execute-1)
+   (execute-1)
+   (execute-1)
+   (execute-1)
+   (execute-1)
+   (execute-1)
+   (execute-1)
+   ;; (execute-1)
+   :stacks)
+
+  (->
+   (execute-load (setup-state) (list 2 'exec_do*times :a))
+   (execute-1)
+   (execute-1)
+   (execute-1)
+   (execute-1)
+   (execute-1)
+   (execute-1)
+   (execute-1)
+   (execute-1)
+   (execute-1)
+   (execute-1)
+   (execute-1)
+   (execute-1)
+   (execute-1)
+   (execute-1)
+   (execute-1)
+   (execute-1)
+   (execute-1)
+   :stacks)
+
+  (->
+   (execute-load (setup-state) (list 2 'exec_do*times :a))
+   (execute-1)
+   :stacks)
+
+  (map
+   :stacks
+   (take 2
+         (iterate (fn [s] (let [s2 (execute-1 s)]
+                            (if )
+                            ))
+                  (execute-load (setup-state)
+                                (list 2 'exec_do*times :a)))))
 
 
 
-  )
+
+  (map :stacks
+       (take 2
+             (reductions (fn [s _]
+                           (let [s2 (execute-1 s)]
+                             (if (= s2 s) (ensure-reduced s) s)))
+                         (execute-load (setup-state)
+                                       (list 2 'exec_do*times :a))
+                         (range))))
+
+
+
+
+  (map
+   :stacks
+   (reductions
+    (fn [s _]
+      (let [s2 (execute-1 s)]
+        (if (= s2 s)
+          (ensure-reduced s)
+          s2)))
+    (execute-load
+     (setup-state)
+     (list 2 'exec_do*times :a))
+    (range)))
+
+
+
+
+
+
+
+
+  (map
+   :stacks
+   (reductions
+    (fn [s _]
+      (let [s2 (execute-1 s)]
+        (if (= s2 s)
+          (ensure-reduced s)
+          s2)))
+    (execute-load
+     (setup-state)
+     '(
+       code_quote
+       code_frominteger
+       0
+       3
+       code_do*range))
+    (range)))
+
+
+
+  (map
+   :stacks
+   (reductions
+    (fn [s _]
+      (let [s2 (execute-1 s)]
+        (if (= s2 s)
+          (ensure-reduced s)
+          s2)))
+    (execute-load
+     (setup-state)
+     '(3 exec_do*count :a))
+    (range)))
+
+
+
+
+
+  (map
+   :stacks
+   (reductions
+    (fn [s _]
+      (let [s2 (execute-1 s)]
+        (if (= s2 s)
+          (ensure-reduced s)
+          s2)))
+    (execute-load
+     (setup-state)
+     '(3 exec_do*count code_frominteger))
+    (range)))
+
+  (map
+   :stacks
+   (reductions
+    (fn [s _]
+      (let [s2 (execute-1 s)]
+        (if (= s2 s)
+          (ensure-reduced s)
+          s2)))
+    (execute-load
+     (setup-state)
+     '(3 exec_do*times code_frominteger))
+    (range)))
+
+
+  (map
+   :stacks
+   (reductions
+    (fn [s _]
+      (let [s2 (execute-1 s)]
+        (if (= s2 s)
+          (ensure-reduced s)
+          s2)))
+    (execute-load
+     (setup-state)
+     '(code_quote :a 3 code_do*times))
+    (range)))
+
+
+  (map
+   :stacks
+   (reductions
+    (fn [s _]
+      (let [s2 (execute-1 s)]
+        (if (= s2 s)
+          (ensure-reduced s)
+          s2)))
+    (execute-load
+     (setup-state)
+     '(code_quote code_frominteger 3 code_do*times))
+    (range)))
+
+
+  (map
+   :stacks
+   (reductions
+    (fn [s _]
+      (let [s2 (execute-1 s)]
+        (if (= s2 s)
+          (ensure-reduced s)
+          s2)))
+    (execute-load
+     (setup-state)
+     '(code_quote code_frominteger 3 code_do*count))
+    (range)))
+
+
+  (map
+   :stacks
+   (reductions
+    (fn [s _]
+      (let [s2 (execute-1 s)]
+        (if (= s2 s)
+          (ensure-reduced s)
+          s2)))
+    (execute-load
+     (setup-state)
+     '(code_quote code_frominteger 10 5 code_do*range))
+    (range))))
