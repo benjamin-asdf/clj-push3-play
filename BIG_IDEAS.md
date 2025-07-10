@@ -6,7 +6,10 @@
 - Piaget's genetic epistemology. 
 
 - Cognition, biology and large scale software systems are all *evolving software*.
-- This is the perspective I want to take, the one of the platonic software animals. 
+- This is the perspective I want to take, one of platonic software animals.
+
+- Our lab shall be the computer, our language shall be Lisp.
+
 
 # Elegance Is The Missing Link Between Aesthetics, Art, Science, Creativity
 
