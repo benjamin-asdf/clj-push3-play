@@ -65,8 +65,8 @@
 (defn swap-top-two [state push-type]
   (if-let [[s [a b]] (pop-n state push-type 2)]
     (-> s
-        (push push-type b)
-        (push push-type a))
+        (push push-type a)
+        (push push-type b))
     state))
 
 (defn rotate-top-three [state push-type]
@@ -110,7 +110,7 @@
     state
     (let [state (pop-item state :push/integer)
           stack (get-in state [:stacks push-type])
-          index (mod (Math/abs index) (count stack))
+          index (mod (abs index) (count stack))
           deep-item (stack-nth state push-type index)]
       (-> state
           (push push-type deep-item)))))
@@ -123,22 +123,15 @@
     (fn [stack]
       (vec (concat (subvec stack 0 n) [item] (subvec stack n))))))
 
-(comment
-  (stack-shove {:stacks {:f [1 2 3]}} :f :a 0)
-  (stack-shove {:stacks {:f [1 2 3]}} :f :a 2))
-
 
 (defn shove-item
   "Inserts the top of `push-type` \"deep\" in the stack"
-  [state push-type index]
-  (if (empty-stack? state push-type)
-    state
-    (let [state (pop-item state :push/integer)
-          item (peek-item state push-type)]
-      (if (= item :no-stack-item)
-        state
-        (let [state (pop-item state push-type)
-              stack (get-in state [:stacks push-type])
-              index (mod (Math/abs index) (count stack))]
-          (-> state
-              (stack-shove push-type item index)))))))
+  [state push-type item index]
+  (let [stack (-> state :stacks push-type)
+        index (mod (abs index) (count stack))]
+    (-> state
+        (stack-shove push-type item index))))
+
+(comment
+  (stack-shove {:stacks {:f [1 2 3]}} :f :a 0)
+  (stack-shove {:stacks {:f [1 2 3]}} :f :a 2))

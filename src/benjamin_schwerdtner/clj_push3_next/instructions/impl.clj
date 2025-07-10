@@ -32,6 +32,10 @@
       ;;
       state
       (let [[state in-vals] in-vals-info
+            _ (def state state)
+            _ (def in-vals in-vals)
+            _ (def f f)
+            _ (def instr instr)
             outcome (apply f state in-vals)]
         (cond
           (= out :state)
@@ -39,7 +43,7 @@
           :else
           (update-in state [:stacks out] conj outcome))))))
 
-(def instruction-table (atom {}))
+(defonce instruction-table (atom {}))
 
 (defn register-instruction
   [{:keys [sym-name in out f]}]
@@ -52,19 +56,7 @@
 (defn instruction [sym]
   (get @instruction-table sym :no-instruction))
 
-
-;; ------------------------
-
-(defn define-impl
-  "Defines the identifier `push-name` as an instruction that
-  puts the value onto the exec stack."
-  [state push-name value]
-  (assoc-in state [:bindings push-name] value))
-
-
-;; -------------------------------
-
-
+(defn all-instructions [] (keys @instruction-table))
 
 (comment
   ;; ---------------------
@@ -80,16 +72,28 @@
     (let [state {:stacks {:push/boolean [true true]}}]
       (execute-instruction state inst))))
 
+;; ------------------------
+
+(defn define-impl
+  "Defines the identifier `push-name` as an instruction that
+  puts the value onto the exec stack."
+  [state push-name value]
+  (assoc-in state [:bindings push-name] value))
+
+;; -------------------------------
+
+
+
 
 ;; == operators ==
 ;; ----------------------------
 
 (defn shover [{:keys [sym-name push-type]}]
   {:sym-name sym-name
-   :in [:push/integer]
+   :in [push-type :push/integer]
    :out :state
-   :f (fn [state index]
-        (stack/shove-item state push-type index))})
+   :f (fn [state item index]
+        (stack/shove-item state push-type item index))})
 
 (defn yankdupper [{:keys [sym-name push-type]}]
   {:sym-name sym-name
@@ -135,7 +139,7 @@
 
 (defn popper
   [{:keys [sym-name push-type]}]
-  {:f identity
+  {:f (fn [s _] s)
    :in [push-type]
    :out :state
    :sym-name sym-name})

@@ -11,7 +11,9 @@
   java.lang.Integer
   (m-typeof-item [this] :push/integer)
   java.lang.Long
-  (m-typeof-item [this] :push/long)
+  (m-typeof-item [this]
+    :push/long
+    :push/integer)
   java.lang.Float
   (m-typeof-item [this] :push/float)
   java.lang.Double

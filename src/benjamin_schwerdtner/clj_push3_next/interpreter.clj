@@ -1,9 +1,10 @@
 (ns benjamin-schwerdtner.clj-push3-next.interpreter
   (:require
-    [benjamin-schwerdtner.clj-push3-next.pushstate :as stack]
-    [benjamin-schwerdtner.clj-push3-next.prot :as prot]
-    [benjamin-schwerdtner.clj-push3-next.instructions.interface :as
-     instructions]))
+   [benjamin-schwerdtner.clj-push3-next.pushstate :as stack]
+   [benjamin-schwerdtner.clj-push3-next.prot :as prot]
+   [benjamin-schwerdtner.clj-push3-next.instructions.interface :as
+    instructions]
+   [benjamin-schwerdtner.clj-push3-next.configuration.config :as config]))
 
 ;; -
 ;; https://faculty.hampshire.edu/lspector/push3-description.html
@@ -12,9 +13,6 @@
 ;; =============================
 ;; Push3
 ;; =============================
-
-(defn push-to-exec-stack [state p]
-  (stack/push state :push/exec p))
 
 (defn typeof-item
   "Returns the type of the item, as a keyword."
@@ -72,7 +70,6 @@ NOTE: this moves the next item in the EXEC stack to the CODE stack.
              (stack/pop-item :push/exec)
              (stack/push :push/code item))))})
 
-
 (defn execute
   [state program]
   ;; using the Push EXEC stack for recursion, inside Push
@@ -84,7 +81,7 @@ NOTE: this moves the next item in the EXEC stack to the CODE stack.
                      state (stack/pop-item state :push/exec)
                      instruction (instructions/instruction item)]
                  (cond
-                   instruction
+                   (not= instruction :no-instruction)
                    (instructions/execute-instruction state instruction)
 
                    (name? item)
@@ -101,15 +98,94 @@ NOTE: this moves the next item in the EXEC stack to the CODE stack.
                                  (reverse item)))))))))
 
 
+;; ---
 
-
-
-
-
-
-
+(defn setup-state
+  []
+  (merge (config/defaults)
+         {:bindings {}
+          :instructions (instructions/all-instructions)
+          :stacks {:push/boolean []
+                   :push/char []
+                   :push/clj-object []
+                   :push/code []
+                   :push/double []
+                   :push/exec []
+                   :push/float []
+                   :push/integer []
+                   :push/long []
+                   :push/name []
+                   :push/string []}}))
 
 (comment
+  (execute (setup-state) '(true false boolean_and))
+  (=
+   [(-> (execute (setup-state) '(true false boolean_and))
+        :stacks :push/boolean
+        peek)
+    (-> (execute (setup-state) '(true true boolean_and))
+        :stacks :push/boolean
+        peek)
+    (-> (execute (setup-state) '(true (true false boolean_and) boolean_and))
+        :stacks :push/boolean
+        peek)
+    (-> (execute (setup-state) '(true (true true boolean_and) boolean_and))
+        :stacks :push/boolean
+        peek)]
+   [false true false true])
+
+
+
+
+
+
+
+
+  (->
+   (execute
+    (setup-state)
+    '(2 2 integer_+))
+   :stacks)
+
+  (->
+   (execute
+    (setup-state)
+    (list 'exec_do*times 2 2))
+   :stacks)
+
+
+
+  (->
+   (execute
+    (setup-state)
+    (list 3 :a 'exec_do*times))
+   :stacks)
+
+  (->
+   (execute
+    (setup-state)
+    (list 3 :a 'code_do*times))
+   :stacks)
+
+
+
+
+
+
+  (->
+   (execute
+    (setup-state)
+    (list 3 'code_quote (list 2) 'code_do*times))
+   :stacks)
+
+  (->
+   (execute
+    (setup-state)
+    (list 3 'exec_do*times 2))
+   :stacks)
+
+
+
 
 
   )
