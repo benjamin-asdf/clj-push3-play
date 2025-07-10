@@ -3,7 +3,10 @@
 - Cognition is a kind of software, created in a software synthesis task during development. 
 
 - The question of brain software is one of knowledge creation, where does the ad-hoc design of brain software come from? 
-- Piaget's genetic epistemology
+- Piaget's genetic epistemology. 
+
+- Cognition, biology and large scale software systems are all *evolving software*.
+- This is the perspective I want to take, the one of the platonic software animals. 
 
 # Elegance Is The Missing Link Between Aesthetics, Art, Science, Creativity
 
@@ -42,15 +45,23 @@
 
 - Braitenberg: Maybe tickle circuits were re-used as humor circuits, activated by elegance detectors, thereby being 'fun lines' that 
   the system can use for instance for it's reward model.
-
-- Idea #3: Behaviour (programs) that feedback activity to their own selection would be autopoetic, if 'being stable activity':
-  - Has to do with priming the correct sensors, it implements prediction and control. 
-  - Has to do with pleasing darwinian wires, it has to do with being an effective animal controller. 
-  - Has to do with gaining activity support from all available network, it has to do with recruiting the complete nervous system in a resourceful manner.
   
+## A Software System Supporting Software Animals Made From Activity
 
+- Idea #3: Behaviour (programs) that feedback activity to their own selection would be autopoetic, self-stabilizing. If activity is 'stable activity' by:
+  - priming the correct sensors: it implements prediction and control. 
+  - pleasing darwinian wires: it has to do with being an effective animal controller. 
+  - gaining activity support from all available network: it has to do with recruiting the complete nervous system in a resourceful manner.
+  - inhibiting it's alternatives: it implements contrast, attention, top-down causation (self-fulfilling prophecies).
+  - being repeatable: it implements long term memory.
 
+- An activity pattern surviving for...
 
+- minutes / hours: situations, feelings, fleeting thoughts, day dreaming
+- hours / days: moods, rumination
+- days / weeks: habits, quirks
+- weeks / months: personalities, interests, traits
+- months / years: the soul, the heart, the I, the live 
 
 
 
