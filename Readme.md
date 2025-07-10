@@ -1,6 +1,6 @@
 Another Clojure implementation of the [push3](https://faculty.hampshire.edu/lspector/push3-description.html) programing language. 
 
-Push is a simple, stack based langauge designed as the program domain for program synthesis tasks. 
+Push is a simple, stack based langauge designed as the target domain for program synthesis tasks. 
 
 # Clojush
 
