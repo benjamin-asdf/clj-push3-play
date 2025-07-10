@@ -1,4 +1,4 @@
-A revised Clojure implementation of the [push3](https://faculty.hampshire.edu/lspector/push3-description.html) programing language. 
+Another Clojure implementation of the [push3](https://faculty.hampshire.edu/lspector/push3-description.html) programing language. 
 
 Push is a simple, stack based langauge designed as the program domain for program synthesis tasks. 
 
@@ -9,10 +9,6 @@ Clojush, an implementation of Push/PushGP in Clojure that has been used for many
 # clj-push3-next compared to Clojush
 
 - Heavily reuse Clojush source code. 
-- Be slighly more data oriented and use slighly less macros. 
-- Split out the push3 interpreter from a genetic programing framework. 
-
-
-
-
+- Be slighly more data oriented.
+- Split out the push3 interpreter from a genetic programing framework.
 
