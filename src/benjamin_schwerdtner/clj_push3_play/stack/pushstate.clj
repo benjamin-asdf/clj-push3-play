@@ -1,6 +1,6 @@
 ;; See clojush/pushstate.clj
-(ns benjamin-schwerdtner.clj-push3-next.stack.pushstate
-  (:require [benjamin-schwerdtner.clj-push3-next.stack.pushvalues :refer [sanitize-value]]))
+(ns benjamin-schwerdtner.clj-push3-play.stack.pushstate
+  (:require [benjamin-schwerdtner.clj-push3-play.stack.pushvalues :refer [sanitize-value]]))
 
 (defn stack-push
   [state push-type value]
@@ -14,12 +14,12 @@
   Also sanitizes values, makes checks etc.
   "
   [state push-type value]
-  (require '[benjamin-schwerdtner.clj-push3-next.prot])
+  (require '[benjamin-schwerdtner.clj-push3-play.prot])
   (when-not
       (push-type #{:push/exec :push/code})
       (when
           (not=
-           (benjamin-schwerdtner.clj-push3-next.prot/m-typeof-item value)
+           (benjamin-schwerdtner.clj-push3-play.prot/m-typeof-item value)
            push-type)
           (throw (Exception. (prn-str {:value value :push-type push-type})))))
 

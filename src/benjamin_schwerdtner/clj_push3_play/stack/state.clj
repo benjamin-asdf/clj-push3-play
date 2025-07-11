@@ -1,4 +1,4 @@
-(ns benjamin-schwerdtner.clj-push3-next.stack.state)
+(ns benjamin-schwerdtner.clj-push3-play.stack.state)
 
 (def push-types
   [:push/boolean

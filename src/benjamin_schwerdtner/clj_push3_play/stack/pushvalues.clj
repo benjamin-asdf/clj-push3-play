@@ -1,4 +1,4 @@
-(ns benjamin-schwerdtner.clj-push3-next.stack.pushvalues)
+(ns benjamin-schwerdtner.clj-push3-play.stack.pushvalues)
 
 (defmulti sanitize-value (fn [_ push-type v] push-type))
 

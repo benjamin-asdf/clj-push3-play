@@ -1,9 +1,9 @@
 (ns gen
   (:require
-    [benjamin-schwerdtner.clj-push3-next.generator :as gen]
-    [benjamin-schwerdtner.clj-push3-next.instructions.interface :as
+    [benjamin-schwerdtner.clj-push3-play.generator :as gen]
+    [benjamin-schwerdtner.clj-push3-play.instructions.interface :as
      instructions]
-    [benjamin-schwerdtner.clj-push3-next.interpreter :as push]))
+    [benjamin-schwerdtner.clj-push3-play.interpreter :as push]))
 
 (defn execute [thecode]
   (-> (push/execute (push/setup-state) thecode {:max-executions 1e4}) :stacks))

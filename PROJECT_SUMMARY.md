@@ -2,7 +2,7 @@
 
 ## Overview
 
-clj-push3-next is a revised Clojure implementation of the Push3 programming language. Push is a stack-based language designed specifically for program synthesis tasks. This implementation aims to provide a cleaner, more data-oriented interface compared to the existing Clojush implementation, separating the Push3 interpreter from genetic programming frameworks.
+clj-push3-play is a toy Clojure implementation of the Push3 programming language. Push is a stack-based language designed specifically for program synthesis tasks. This implementation aims to provide a cleaner, more data-oriented interface compared to the existing Clojush implementation, separating the Push3 interpreter from genetic programming frameworks.
 
 ## Project Philosophy
 
