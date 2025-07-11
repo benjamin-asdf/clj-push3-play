@@ -8,9 +8,6 @@
 - Cognition, biology and large scale software systems are all *evolving software*.
 - This is the perspective I want to take, one of platonic software animals.
 
-- Our lab shall be the computer, our language shall be Lisp.
-
-
 # Elegance Is The Missing Link Between Aesthetics, Art, Science, Creativity
 
 - Elegance is the property of good design (in Software design). 
