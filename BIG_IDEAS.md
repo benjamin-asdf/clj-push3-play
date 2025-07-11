@@ -58,13 +58,19 @@
   - inhibiting it's alternatives: it implements contrast, attention, top-down causation (self-fulfilling prophecies).
   - being repeatable: it implements long term memory.
 
-- An activity pattern surviving for...
 
-- minutes / hours: situations, feelings, fleeting thoughts, day dreaming
-- hours / days: moods, rumination
-- days / weeks: habits, quirks
-- weeks / months: personalities, interests, traits
-- months / years: the soul, the heart, the I, the live 
+
+## An activity pattern surviving for...
+
+- *minutes / hours*: situations, feelings, fleeting thoughts, day dreaming
+- *hours / days*: moods, rumination
+- *days / weeks*: habits, quirks
+- *weeks / months*: personalities, interests, traits
+- *months / years*: the soul, the heart, the I,
+- *years - decades*: network of memories, having a life 
+
+
+
 
 
 
