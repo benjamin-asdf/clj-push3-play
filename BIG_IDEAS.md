@@ -32,7 +32,7 @@
 - Elegance in biology in my feel has something to do with the range of possible uses of a thing. An elegant design is one that let's one 
   *win* in the future. 
 - Like planning for the unplanned to occur. Because problem solving in the real world is open ended. 
-- G. Chaitin points out that adaptationism get's the open endedness, the 'keeps on going' part of evolution wrong!
+- G. Chaitin points out that adaptationism is wrong. It get's the open endedness 'keeps on going' part of evolution wrong!
 - Therefore, the problems of creativity and open endedness truly are at the cutting edge of theoretical evolutionary biology also.
 
 - Elegance is a creative problem and therefore open ended. I.e. there is no 'most elegant' solution to anything.
@@ -44,7 +44,7 @@
 - These are adapted, are encoded in the genome and can by definition not look at the content of mentality, only the hardware level implementation of it. 
 - Idea #1: Time: By allowing a settled activity to inhibit all alternatives, the fastest program could win.
 - Idea #2: Inhibition: The amount of inhibition an activity patterns sustains could be an indication of it's connectedness to the rest of the network, 
-  making it an idea that 'fitst well' with the overall memory structure (~ world model) of the network.
+  making it an idea that 'fits well' with the overall memory structure (~ world model) of the network.
 
 - Braitenberg: Maybe tickle circuits were re-used as humor circuits, activated by elegance detectors, thereby being 'fun lines' that 
   the system can use for instance for it's reward model.
