@@ -26,7 +26,7 @@
 ;;
 ;; ===============================
 
-(ns benjamin-schwerdtner.clj-push3-next.util
+(ns benjamin-schwerdtner.clj-push3-play.util
   (:require [clojure.zip :as zip]
             [clojure.walk :as walk]
             [clojure.string :as string]))

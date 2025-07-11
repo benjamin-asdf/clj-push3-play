@@ -1,4 +1,4 @@
-(ns benjamin-schwerdtner.clj-push3-next.configuration.config)
+(ns benjamin-schwerdtner.clj-push3-play.configuration.config)
 
 (defn defaults []
   {:parameters

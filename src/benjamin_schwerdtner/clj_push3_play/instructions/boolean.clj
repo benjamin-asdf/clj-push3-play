@@ -1,8 +1,8 @@
-(ns benjamin-schwerdtner.clj-push3-next.instructions.boolean
+(ns benjamin-schwerdtner.clj-push3-play.instructions.boolean
   (:require
-   [benjamin-schwerdtner.clj-push3-next.instructions.impl :refer
+   [benjamin-schwerdtner.clj-push3-play.instructions.impl :refer
     [register-instruction] :as impl]
-   ;; [benjamin-schwerdtner.clj-push3-next.pushstate :as stack]
+   ;; [benjamin-schwerdtner.clj-push3-play.stack.pushstate :as stack]
    ))
 
 ;; Boolean logic instructions

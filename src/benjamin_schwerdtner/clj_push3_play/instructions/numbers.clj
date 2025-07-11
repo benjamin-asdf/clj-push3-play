@@ -1,33 +1,52 @@
-(ns benjamin-schwerdtner.clj-push3-next.instructions.numbers
+(ns benjamin-schwerdtner.clj-push3-play.instructions.numbers
   (:require
-   [benjamin-schwerdtner.clj-push3-next.instructions.impl :refer
+   [benjamin-schwerdtner.clj-push3-play.instructions.impl :refer
     [register-instruction] :as impl]
-   [benjamin-schwerdtner.clj-push3-next.pushstate :as stack]))
+   [benjamin-schwerdtner.clj-push3-play.stack.pushstate :as stack]))
 
 ;; Arithmetic instructions
 
+;;
+;; ---
+;; Note
+;;
+;; - 1. we use the auto promoting functions, allowing bigint
+;; - 2. long, bigint, integer count as push 'integer' type
+;; - 3. float, double, ratio count as push 'float' type
+
+
+;; -----------------
+
+;; Mod / Div:
+;;
+;; Official spec is a bit complicated.
+;; I take the freedom to implement a simpler, more regular version.
+;;
+;; - 1. pop 2 numbers from the stack
+;; - 2. if the second item is zero, leave state (_with items popped_)
+;; - 3. else push the result of modding the first by the second value
+;;
+
+;; In the orig spec, a zero value is a NOOP.
+;; In this version, a zero value still pops the items.
+
+;; This concerns modder and divider.
+
+
 (defn modder [{:keys [sym-name push-type]}]
   {:doc "Pushes the second stack item modulo the top stack item"
-   :f (fn [state]
-        ;; f the top item is zero this acts as a NOOP
-        (if (or (empty? (-> state
-                            :stacks
-                            push-type))
-                (zero? (stack/peek-item state push-type)))
+   :f (fn [state a b]
+        (if (zero? b)
           state
-          (let [a (stack/stack-nth state push-type 0)
-                b (stack/stack-nth state push-type 1)]
-            (-> state
-                (stack/pop-n push-type 2)
-                (stack/push push-type (mod b a))))))
-   :in []
+          (stack/push state push-type (mod a b))))
+   :in [push-type push-type]
    :out :state
    :sym-name sym-name})
 
 (defn multiplier [{:keys [sym-name push-type]}]
   {:doc "Pushes the second stack item multiplied by the top stack item"
    :f (fn [_state a b]
-        (* a b))
+        (*' a b))
    :in [push-type push-type]
    :out push-type
    :sym-name sym-name})
@@ -35,7 +54,7 @@
 (defn adder [{:keys [sym-name push-type]}]
   {:doc "Pushes the sum of the top two stack items"
    :f (fn [_state a b]
-        (+ a b))
+        (+' a b))
    :in [push-type push-type]
    :out push-type
    :sym-name sym-name})
@@ -43,29 +62,46 @@
 (defn subtractor [{:keys [sym-name push-type]}]
   {:doc "Pushes the difference of the top two stack items"
    :f (fn [_state a b]
-        (- a b))
+        (-' a b))
    :in [push-type push-type]
    :out push-type
    :sym-name sym-name})
 
+#_(defn divider
+    [{:keys [sym-name push-type]}]
+    {:doc "Pushes the second stack item divided by the top stack item"
+     :f (fn [state]
+          ;; f the top item is zero this acts as a NOOP
+          (if (or (empty? (-> state :stacks push-type))
+                  (zero? (stack/peek-item state push-type)))
+            state
+            (let [a (stack/stack-nth state push-type 0)
+                  b (stack/stack-nth state push-type 1)]
+              (-> state
+                  (stack/pop-n push-type 2)
+                  (stack/push push-type (/ b a))))))
+     :in []
+     :out :state
+     :sym-name sym-name})
+
+
 (defn divider
   [{:keys [sym-name push-type]}]
   {:doc "Pushes the second stack item divided by the top stack item"
-   :f (fn [state]
+   :f (fn [state a b]
         ;; f the top item is zero this acts as a NOOP
-        (if (or (empty? (-> state
-                            :stacks
-                            push-type))
-                (zero? (stack/peek-item state push-type)))
+        ;; (still pops items in this version)
+        (if (zero? b)
           state
-          (let [a (stack/stack-nth state push-type 0)
-                b (stack/stack-nth state push-type 1)]
-            (-> state
-                (stack/pop-n push-type 2)
-                (stack/push push-type (/ b a))))))
-   :in []
+          (stack/push state
+                      push-type
+                      (if (= push-type :push/integer)
+                        (bigint (/ (Math/floor a) (Math/floor b)))
+                        (/ a b)))))
+   :in [push-type push-type]
    :out :state
    :sym-name sym-name})
+
 
 ;; -----------
 ;; Comparison instructions
@@ -108,10 +144,17 @@
 (defn maxxer
   [{:keys [sym-name push-type]}]
   {:doc "Pushes the maximum of the top two stack items"
-   :f (fn [_state a b] (max a b))
+   :f (fn [_state a b]
+        (def _state _state)
+        (def a a)
+        (def b b)
+        (def push-type push-type)
+        (def sym-name sym-name)
+        (max a b))
    :in [push-type push-type]
    :out push-type
    :sym-name sym-name})
+
 
 ;; RENAMED:
 ;; integer_% -> integer_mod

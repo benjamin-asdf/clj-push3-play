@@ -1,5 +1,6 @@
-(ns benjamin-schwerdtner.clj-push3-next.generator
-  (:require [benjamin-schwerdtner.clj-push3-next.util :as util]))
+(ns benjamin-schwerdtner.clj-push3-play.generator
+  (:require
+   [benjamin-schwerdtner.clj-push3-play.util :as util]))
 
 
 ;; ?
@@ -11,10 +12,7 @@
 
 ;; ----------------------
 
-(defn all-identifiers [state]
-  (concat
-   (:instructions state)
-   (vals (:bindings state))))
+
 
 (defn generate-code
   [{:keys [max-points branch-probability atom-generators depth
@@ -48,10 +46,14 @@
    ;; clj-objects
    (fn [] (rand-nth [{} #{} [] nil]))])
 
-(defn generators
-  [state]
-  (concat default-generators
-          [(fn [] (rand-nth (into [] (all-identifiers state))))]))
+
+(defn identifier-generators [identifiers]
+  (let [identifiers (into [] identifiers)]
+    [(fn [] (rand-nth identifiers))]))
+
+
+
+
 
 
 

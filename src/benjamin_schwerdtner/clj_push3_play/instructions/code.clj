@@ -1,11 +1,11 @@
-(ns benjamin-schwerdtner.clj-push3-next.instructions.code
+(ns benjamin-schwerdtner.clj-push3-play.instructions.code
   (:require
-   [benjamin-schwerdtner.clj-push3-next.instructions.impl :refer
+   [benjamin-schwerdtner.clj-push3-play.instructions.impl :refer
     [register-instruction] :as impl]
-   [benjamin-schwerdtner.clj-push3-next.pushstate :as stack]
-   [benjamin-schwerdtner.clj-push3-next.util :as util :refer [ensure-list]]
-   [benjamin-schwerdtner.clj-push3-next.generator :as gen]
-   ;; [benjamin-schwerdtner.clj-push3-next.instructions.code-impl :refer
+   [benjamin-schwerdtner.clj-push3-play.stack.pushstate :as stack]
+   [benjamin-schwerdtner.clj-push3-play.util :as util :refer [ensure-list]]
+   [benjamin-schwerdtner.clj-push3-play.generator :as gen]
+   ;; [benjamin-schwerdtner.clj-push3-play.instructions.code-impl :refer
    ;;  [do-range do-count do-times
    ;;   ensure-list]]
    ))
@@ -32,13 +32,19 @@
 
 (register-instruction
   {:f (fn [state limit]
+        (def state state)
+        (def limit limit)
         (gen/generate-code
-          {:atom-generators (gen/generators state)
-           :max-points
-             (abs (mod limit
-                       (-> state
-                           :parameters
-                           :max-points-in-random-expressions)))}))
+         {:atom-generators
+          (concat gen/default-generators
+                  (gen/identifier-generators
+                   (impl/all-identifiers state)))
+          :max-points (abs
+                       (mod limit
+                            (->
+                             state
+                             :parameters
+                             (:max-points-in-random-expressions 20))))}))
    :in [:push/integer]
    :out :push/code
    :sym-name 'code_rand})
@@ -374,7 +380,12 @@ otherwise it recursively executes the first item of the CODE stack."
        ;; I wonder if I should allow code items to be seqs.
        ;; ie. make code_member work on the seq interface
        ;; It goes against Clojure sensibilities to define typed operators
-       (contains? (ensure-list container) item))})
+       (if
+           (or
+            (map? container)
+            (set? container))
+           (contains? container item)
+           (some #{item} (ensure-list container))))})
 
 (register-instruction
  {:sym-name 'code_noop
@@ -387,18 +398,23 @@ otherwise it recursively executes the first item of the CODE stack."
   :in [:push/integer :push/code]
   :out :push/code
   :f (fn [_ n code]
-       (let [code (ensure-list code)
-             n (mod (abs n) (count code))]
-         (nth code n)))})
+       (let [code (ensure-list code)]
+         (if (empty? code)
+           '()
+           (let [n (mod (abs n) (count code))]
+             (nth code n)))))})
 
 (register-instruction
  {:sym-name 'code_nthcdr
   :in [:push/integer :push/code]
   :out :push/code
   :f (fn [_ n code]
-       (let [code (ensure-list code)
-             n (mod (abs n) (count code))]
-         (drop n code)))})
+       (let [code (ensure-list code)]
+         (if
+             (empty? code)
+             '()
+             (let [    n (mod (abs n) (count code))]
+               (drop n code)))))})
 
 (register-instruction
  {:sym-name 'code_null

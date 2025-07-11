@@ -1,4 +1,4 @@
-(ns benjamin-schwerdtner.clj-push3-next.interpreter-concepts)
+(ns benjamin-schwerdtner.clj-push3-play.interpreter-concepts)
 
 ;; -
 ;; https://faculty.hampshire.edu/lspector/push3-description.html

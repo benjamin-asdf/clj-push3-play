@@ -1,4 +1,4 @@
-(ns benjamin-schwerdtner.clj-push3-next.prot)
+(ns benjamin-schwerdtner.clj-push3-play.prot)
 
 (defprotocol PushValue
   (m-typeof-item [this]))
@@ -8,19 +8,21 @@
   (m-typeof-item [_this] :push/string)
   java.lang.Boolean
   (m-typeof-item [_this] :push/boolean)
+  ;; -------------------
   java.lang.Integer
   (m-typeof-item [_this] :push/integer)
   java.lang.Long
-  (m-typeof-item [_this]
-    ;; :push/long
-    :push/integer)
+  (m-typeof-item [_this] :push/integer)
+  clojure.lang.BigInt
+  (m-typeof-item [_this] :push/integer)
+  ;; ------------------
   java.lang.Float
   (m-typeof-item [_this] :push/float)
   java.lang.Double
-  (m-typeof-item [_this]
-    ;; :push/double
-    :push/float
-    )
+  (m-typeof-item [_this] :push/float)
+  clojure.lang.Ratio
+  (m-typeof-item [_this] :push/float)
+  ;; -------------------
   java.util.List
   (m-typeof-item [_this] :push/code)
   clojure.lang.Symbol

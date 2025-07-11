@@ -1,9 +1,34 @@
 ;; See clojush/pushstate.clj
+(ns benjamin-schwerdtner.clj-push3-next.stack.pushstate
+  (:require [benjamin-schwerdtner.clj-push3-next.stack.pushvalues :refer [sanitize-value]]))
 
-(ns benjamin-schwerdtner.clj-push3-next.pushstate)
-
-(defn push [state push-type value]
+(defn stack-push
+  [state push-type value]
   (update-in state [:stacks push-type] conj value))
+
+;; ---
+
+(defn push
+  "The push interface for pushing to a stack.
+
+  Also sanitizes values, makes checks etc.
+  "
+  [state push-type value]
+  (require '[benjamin-schwerdtner.clj-push3-next.prot])
+  (when-not
+      (push-type #{:push/exec :push/code})
+      (when
+          (not=
+           (benjamin-schwerdtner.clj-push3-next.prot/m-typeof-item value)
+           push-type)
+          (throw (Exception. (prn-str {:value value :push-type push-type})))))
+
+
+  ;; 1. what about state level checks?
+  (stack-push state push-type
+              (sanitize-value state push-type value)))
+
+;; ---
 
 (defn peek-item [state push-type]
   (let [stack (get-in state [:stacks push-type])]
@@ -89,9 +114,8 @@
   ;; be slightly different from the spec.
   (if (empty-stack? state push-type)
     state
-    (let [state (pop-item state :push/integer)
-          stack (get-in state [:stacks push-type])
-          ;; design decision to auto put into idx range
+    (let [stack (get-in state [:stacks push-type])
+          ;; design decision, keep in valid idx range.
           index (mod (Math/abs (int index)) (count stack))
           item (stack-nth state push-type index)]
       (-> state
@@ -108,8 +132,7 @@
   [state push-type index]
   (if (empty-stack? state push-type)
     state
-    (let [state (pop-item state :push/integer)
-          stack (get-in state [:stacks push-type])
+    (let [stack (get-in state [:stacks push-type])
           index (mod (abs index) (count stack))
           deep-item (stack-nth state push-type index)]
       (-> state
@@ -121,14 +144,17 @@
     state
     [:stacks push-type]
     (fn [stack]
-      (vec (concat (subvec stack 0 n) [item] (subvec stack n))))))
-
+      (vec (concat (subvec stack 0 n)
+                   [item]
+                   (subvec stack n))))))
 
 (defn shove-item
   "Inserts the top of `push-type` \"deep\" in the stack"
   [state push-type item index]
   (let [stack (-> state :stacks push-type)
-        index (mod (abs index) (count stack))]
+        index (if (empty? stack)
+                0
+                (mod (abs index) (count stack)))]
     (-> state
         (stack-shove push-type item index))))
 

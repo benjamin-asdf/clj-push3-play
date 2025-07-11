@@ -1,9 +1,9 @@
-(ns benjamin-schwerdtner.clj-push3-next.instructions.exec
+(ns benjamin-schwerdtner.clj-push3-play.instructions.exec
   (:require
-   [benjamin-schwerdtner.clj-push3-next.instructions.impl :refer
+   [benjamin-schwerdtner.clj-push3-play.instructions.impl :refer
     [register-instruction] :as impl]
-   [benjamin-schwerdtner.clj-push3-next.util :refer [ensure-list]]
-   [benjamin-schwerdtner.clj-push3-next.pushstate :as stack]))
+   [benjamin-schwerdtner.clj-push3-play.util :refer [ensure-list]]
+   [benjamin-schwerdtner.clj-push3-play.stack.pushstate :as stack]))
 
 (register-instruction
  {:sym-name 'exec_=

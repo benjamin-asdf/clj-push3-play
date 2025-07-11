@@ -1,6 +1,6 @@
-(ns benjamin-schwerdtner.clj-push3-next.instructions.impl
+(ns benjamin-schwerdtner.clj-push3-play.instructions.impl
   (:require
-   [benjamin-schwerdtner.clj-push3-next.pushstate :as stack]))
+   [benjamin-schwerdtner.clj-push3-play.stack.pushstate :as stack]))
 
 (defn execute-instruction
   "Returns a new `state` with instruction `instr` executed.
@@ -17,6 +17,9 @@
 
   "
   [state {:as instr :push.instruction/keys [in out f]}]
+  ;; (def state state)
+  ;; (-> state :stacks :push/float)
+  ;; (def instr instr)
   (let [in-vals-info (reduce (fn [[s vs] t]
                                (let [stack (-> s
                                                :stacks
@@ -25,8 +28,8 @@
                                    (ensure-reduced ::empty)
                                    [(update-in s [:stacks t] pop)
                                     (conj vs (peek stack))])))
-                       [state []]
-                       in)]
+                             [state []]
+                             in)]
     (if (= in-vals-info ::empty)
       ;; NOOP
       ;;
@@ -54,12 +57,19 @@
     sym-name
     {:push.instruction/in in
      :push.instruction/out out
-     :push.instruction/f f}))
+     :push.instruction/f f
+     :push.instruction/sym-name sym-name}))
 
 (defn instruction [sym]
   (get @instruction-table sym :no-instruction))
 
 (defn all-instructions [] (keys @instruction-table))
+
+(defn all-identifiers [state]
+  (concat
+   (:instructions state)
+   (vals (:bindings state))))
+
 
 (comment
   ;; ---------------------

@@ -1,4 +1,4 @@
-(ns benjamin-schwerdtner.clj-push3-next.configuration.parser
+(ns benjamin-schwerdtner.clj-push3-play.configuration.parser
   (:require [clojure.string :as str]))
 
 ;; --------------------------------

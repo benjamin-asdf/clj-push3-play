@@ -1,4 +1,4 @@
-# clj-push3-next Project Summary
+# clj-push3-play Project Summary
 
 ## Overview
 
@@ -13,7 +13,7 @@ clj-push3-next is a revised Clojure implementation of the Push3 programming lang
 ## Key File Paths
 
 ### Source Code
-- `/src/benjamin_schwerdtner/clj-push3-next/interpreter.clj` - Main interpreter implementation (currently in initial development)
+- `/src/benjamin_schwerdtner/clj-push3-play/interpreter.clj` - Main interpreter implementation (currently in initial development)
 
 ### Documentation
 - `/Readme.md` - Basic project introduction and comparison with Clojush
@@ -91,7 +91,7 @@ The project is in early development with the core interpreter namespace establis
 
 ```clojure
 ;; Example of running a Push program (planned API)
-(require '[benjamin-schwerdtner.clj-push3-next.interpreter :as push])
+(require '[benjamin-schwerdtner.clj-push3-play.interpreter :as push])
 
 ;; Define a simple Push program as data
 (def program '[1 2 INTEGER.+])

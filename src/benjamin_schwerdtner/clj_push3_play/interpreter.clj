@@ -1,10 +1,11 @@
-(ns benjamin-schwerdtner.clj-push3-next.interpreter
+(ns benjamin-schwerdtner.clj-push3-play.interpreter
   (:require
-   [benjamin-schwerdtner.clj-push3-next.pushstate :as stack]
-   [benjamin-schwerdtner.clj-push3-next.prot :as prot]
-   [benjamin-schwerdtner.clj-push3-next.instructions.interface :as
+   [benjamin-schwerdtner.clj-push3-play.stack.pushstate :as stack]
+   ;; [benjamin-schwerdtner.clj-push3-play.stack.state :as s-st]
+   [benjamin-schwerdtner.clj-push3-play.prot :as prot]
+   [benjamin-schwerdtner.clj-push3-play.instructions.interface :as
     instructions]
-   [benjamin-schwerdtner.clj-push3-next.configuration.config :as config]))
+   [benjamin-schwerdtner.clj-push3-play.configuration.config :as config]))
 
 ;; -
 ;; https://faculty.hampshire.edu/lspector/push3-description.html
@@ -140,15 +141,16 @@ NOTE: this moves the next item in the EXEC stack to the CODE stack.
   (merge (config/defaults)
          {:bindings {}
           :instructions (instructions/all-instructions)
-          :stacks {:push/boolean []
-                   :push/char []
-                   :push/clj-object []
-                   :push/code []
-                   :push/exec []
-                   :push/float []
-                   :push/integer []
-                   :push/name []
-                   :push/string []}}))
+          :stacksuse-sync-external-store/shim/index.js
+          {:push/boolean []
+           :push/char []
+           :push/clj-object []
+           :push/code []
+           :push/exec []
+           :push/float []
+           :push/integer []
+           :push/name []
+           :push/string []}}))
 
 
 (comment
@@ -240,18 +242,6 @@ NOTE: this moves the next item in the EXEC stack to the CODE stack.
    (execute-1)
    :stacks)
 
-  (map
-   :stacks
-   (take 2
-         (iterate (fn [s] (let [s2 (execute-1 s)]
-                            (if )
-                            ))
-                  (execute-load (setup-state)
-                                (list 2 'exec_do*times :a)))))
-
-
-
-
   (map :stacks
        (take 2
              (reductions (fn [s _]
@@ -277,13 +267,6 @@ NOTE: this moves the next item in the EXEC stack to the CODE stack.
      (list 2 'exec_do*times :a))
     (range)))
 
-
-
-
-
-
-
-
   (map
    :stacks
    (reductions
@@ -301,9 +284,6 @@ NOTE: this moves the next item in the EXEC stack to the CODE stack.
        3
        code_do*range))
     (range)))
-
-
-
   (map
    :stacks
    (reductions
@@ -316,10 +296,6 @@ NOTE: this moves the next item in the EXEC stack to the CODE stack.
      (setup-state)
      '(3 exec_do*count :a))
     (range)))
-
-
-
-
 
   (map
    :stacks
@@ -361,7 +337,6 @@ NOTE: this moves the next item in the EXEC stack to the CODE stack.
      '(code_quote :a 3 code_do*times))
     (range)))
 
-
   (map
    :stacks
    (reductions
@@ -375,7 +350,6 @@ NOTE: this moves the next item in the EXEC stack to the CODE stack.
      '(code_quote code_frominteger 3 code_do*times))
     (range)))
 
-
   (map
    :stacks
    (reductions
@@ -388,7 +362,6 @@ NOTE: this moves the next item in the EXEC stack to the CODE stack.
      (setup-state)
      '(code_quote code_frominteger 3 code_do*count))
     (range)))
-
 
   (map
    :stacks

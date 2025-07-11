@@ -1,8 +1,8 @@
-(ns benjamin-schwerdtner.clj-push3-next.instructions.push-name
+(ns benjamin-schwerdtner.clj-push3-play.instructions.push-name
   (:require
-   [benjamin-schwerdtner.clj-push3-next.instructions.impl :refer
+   [benjamin-schwerdtner.clj-push3-play.instructions.impl :refer
     [register-instruction] :as impl]
-   [benjamin-schwerdtner.clj-push3-next.pushstate :as stack]))
+   [benjamin-schwerdtner.clj-push3-play.stack.pushstate :as stack]))
 
 ;; ==================================
 ;; NAME instructions
@@ -30,7 +30,7 @@
              :push-type :push/name})))
 
 ;; NAME.QUOTE instruction
-;; is handled in benjamin-schwerdtner.clj-push3-next.interpreter
+;; is handled in benjamin-schwerdtner.clj-push3-play.interpreter
 
 ;; NAME.RAND instruction
 (register-instruction
