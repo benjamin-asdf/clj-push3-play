@@ -9,23 +9,6 @@
   (-> (push/execute (push/setup-state) thecode {:max-executions 1e4}) :stacks))
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 (comment
 
   (defn code []
@@ -79,10 +62,4 @@
      (assoc-in [:parameters :max-points-in-random-expressions] 250))
     (list 2 'code_rand))
    :stacks
-   :push/code)
-
-
-
-
-
-  )
+   :push/code))

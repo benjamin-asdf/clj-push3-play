@@ -11,7 +11,6 @@
     :max-points-in-random-expressions 25
     :max-points-in-program 100}
 
-
    ;; ignore, use all
    ;; :intructions []
    ;; :types [:push/float]

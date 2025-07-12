@@ -58,7 +58,6 @@ Presumably for redefinition."
 
 ;; using the Push EXEC stack for recursion, inside Push
 
-
 (defn execute-load
   [state program]
   (stack/push state :push/exec program))
@@ -137,6 +136,27 @@ Presumably for redefinition."
            :push/integer []
            :push/name []
            :push/string []}}))
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+;; =============================================================
+
 
 
 (comment
