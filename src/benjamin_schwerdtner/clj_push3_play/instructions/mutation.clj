@@ -198,15 +198,5 @@
 
 
 
-(register-instruction
- {:sym-name 'mut_gen
-  :in []
-  :out :push/code
-  :doc "Gen one code point"
-  :f
-  (fn [{:keys [random-seed]}]
-    ;;
-    )})
-
 
 ;; -------------------------

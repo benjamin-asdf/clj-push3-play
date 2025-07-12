@@ -47,20 +47,13 @@
    :sym-name 'code_rand})
 
 (register-instruction
- {:f (fn [state limit]
-       (gen/generate-code
-        {:atom-generators (concat gen/default-generators
-                                  (gen/identifier-generators
-                                   (impl/all-identifiers state)))
-         :max-points (abs (mod limit
-                               (->
-                                state
-                                :parameters
-                                (:max-points-in-random-expressions
-                                 20))))}))
-  :in [:push/integer]
-  :out :push/code
-  :sym-name 'code_rand_atom})
+  {:f (fn [state]
+        (gen/rand-atom (concat gen/default-generators
+                               (gen/identifier-generators
+                                 (impl/all-identifiers state)))))
+   :in []
+   :out :push/code
+   :sym-name 'code_rand_atom})
 
 ;; List manipulation instructions
 (register-instruction

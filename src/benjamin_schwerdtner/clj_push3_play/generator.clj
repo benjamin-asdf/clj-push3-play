@@ -12,6 +12,9 @@
 
 ;; ----------------------
 
+(defn rand-atom [atom-generators _random-seed]
+  ((rand-nth atom-generators)))
+
 (defn generate-code
   [{:keys [max-points branch-probability atom-generators depth
            close-probability]
@@ -24,19 +27,18 @@
     (let [points (util/count-points program)]
       (if (< (rand) (close-probability depth))
         program
-        (cond
-          (= max-points points) program
-          (< max-points points) prev-program
-          :else
-          (recur program
-                 (conj program
-                       (if (< (rand) (branch-probability depth))
-                         (generate-code (merge opts
-                                               {:depth (inc depth)
-                                                :max-points
-                                                (- max-points
-                                                   points)}))
-                         ((first (shuffle atom-generators)))))))))))
+        (cond (= max-points points) program
+              (< max-points points) prev-program
+              :else (recur program
+                           (conj program
+                                 (if (< (rand)
+                                        (branch-probability depth))
+                                   (generate-code
+                                     (merge opts
+                                            {:depth (inc depth)
+                                             :max-points (- max-points
+                                                            points)}))
+                                   (rand-atom atom-generators)))))))))
 
 (def default-generators
   [(fn [] (rand-nth [true false]))
@@ -48,13 +50,6 @@
 (defn identifier-generators [identifiers]
   (let [identifiers (into [] identifiers)]
     [(fn [] (rand-nth identifiers))]))
-
-(defn rand-atom [generators random-seed]
-  (shuffle))
-
-
-
-
 
 (comment
   (generate-code
