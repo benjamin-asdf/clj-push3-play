@@ -15,10 +15,10 @@
 
 - Call the evolution of evolability 'meta evolution'.
 - Basic Idea:
-  1. genetic material (=E=) evoloves against a fitness landscape (=fitness=).
+  1. genetic material (=E=) evoloves against a fitness landscape (given by the function =fitness=).
   2. generate variations via the mutator operator =mut=.
-  3. =mut= itself is a set of evolved algorithms, with genetic material =M=.
-  4. The signature of mutation in this system is something like =variants = mut(individual-of-E,M)=
+  3. =mut= itself uses a set of evolved algorithms, with genetic material =M=.
+  4. The signature of mutation in this system is something like =variants = mutate(individual-of-E,M)=
      or =mutate(population-of-E,mutator-population)=.
 
 * Baldwin and meta evolutionary Baldwin effects:
