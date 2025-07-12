@@ -1,8 +1,10 @@
 (ns benjamin-schwerdtner.clj-push3-play.instructions.push-name
+  (:refer-clojure :exclude [rand rand-int rand-nth shuffle])
   (:require
    [benjamin-schwerdtner.clj-push3-play.instructions.impl :refer
     [register-instruction] :as impl]
-   [benjamin-schwerdtner.clj-push3-play.stack.pushstate :as stack]))
+   [benjamin-schwerdtner.clj-push3-play.stack.pushstate :as stack]
+   [random-seed.core :refer [rand-nth]]))
 
 ;; ==================================
 ;; NAME instructions
@@ -49,4 +51,5 @@
        (let [bound-names (keys (:bindings state))]
          (if (empty? bound-names)
            state
-           (stack/push state :push/name (rand-nth (vec bound-names))))))})
+           (stack/push state :push/name
+                       (rand-nth (vec bound-names))))))})

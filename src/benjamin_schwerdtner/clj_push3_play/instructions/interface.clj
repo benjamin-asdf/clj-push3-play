@@ -5,6 +5,7 @@
    [benjamin-schwerdtner.clj-push3-play.instructions.code]
    [benjamin-schwerdtner.clj-push3-play.instructions.numbers]
    [benjamin-schwerdtner.clj-push3-play.instructions.push-name]
+   [benjamin-schwerdtner.clj-push3-play.instructions.mutation]
    [benjamin-schwerdtner.clj-push3-play.instructions.exec]))
 
 (defn register-instruction [{:keys [sym-name in out f] :as opts}]

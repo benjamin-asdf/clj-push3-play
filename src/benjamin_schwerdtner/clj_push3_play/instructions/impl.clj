@@ -17,10 +17,6 @@
 
   "
   [state {:as instr :push.instruction/keys [in out f]}]
-  (def state state)
-  (-> state :stacks :push/float)
-  (-> state :stacks)
-  (def instr instr)
   (let [
         {:push.instruction/keys [in out f]} instr
 

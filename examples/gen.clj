@@ -8,7 +8,6 @@
 (defn execute [thecode]
   (-> (push/execute (push/setup-state) thecode {:max-executions 1e4}) :stacks))
 
-
 (comment
 
   (defn code []
@@ -29,10 +28,6 @@
                                      thecode
                                      {:max-executions 1e4})
                        :stacks)))))
-
-
-
-
 
 
   ;; long overflow:

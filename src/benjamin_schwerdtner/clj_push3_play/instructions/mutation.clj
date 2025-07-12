@@ -139,6 +139,13 @@
 ;;
 
 (defn rotate
+  "Returns a seq with the same length,
+  where `xs` elements are move to the right `n` positions.
+
+  Implementing a 'periodic boundary condition'.
+
+  This is sometimes also called `roll`.
+  "
   [xs n]
   (if (or (zero? n) (empty? xs))
     xs
@@ -161,7 +168,24 @@
   (fn [_ code n]
     (apply list (rotate (ensure-list code) n)))})
 
+
+;; -----------------------------
+
+
+;; The periodic boundary condition is well-known in video games,
+;; when the character moves in from the left when they move outside of the right.
+
+;; This also called toroidal topology.
+
 (defn inverse
+  "Returns a seq with the same lenght,
+
+  the section starting at `start` of length `len` in `xs` is reversed.
+
+  This wraps, if start and len are outside the size of `xs`.
+
+  Implementing a 'periodic boundary condition'.
+  "
   [xs start len]
   (if (empty? xs)
     xs
@@ -173,6 +197,17 @@
             (concat (take start xsc)
                     (reverse (take len (drop start xsc)))
                     (drop (+ start len) xsc))))))
+
+
+(register-instruction
+ {:sym-name 'mut_inverse
+  :in [:push/code :push/integer :push/integer]
+  :out :push/code
+  :f
+  (fn [_ code start len]
+    (apply list (inverse (ensure-list code) start len)))})
+
+;; -------------------
 
 (comment
   (inverse [:a :b :c :d :e] 1 2)
@@ -187,14 +222,6 @@
 
   (inverse [:a :b :c :d :e] 0 2)
   '(:b :a :c :d :e))
-
-(register-instruction
- {:sym-name 'mut_inverse
-  :in [:push/code :push/integer :push/integer]
-  :out :push/code
-  :f
-  (fn [_ code start len]
-    (apply list (inverse (ensure-list code) start len)))})
 
 
 

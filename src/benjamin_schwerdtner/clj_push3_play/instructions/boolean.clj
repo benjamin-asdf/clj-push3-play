@@ -2,8 +2,7 @@
   (:require
    [benjamin-schwerdtner.clj-push3-play.instructions.impl :refer
     [register-instruction] :as impl]
-   ;; [benjamin-schwerdtner.clj-push3-play.stack.pushstate :as stack]
-   ))
+   [benjamin-schwerdtner.clj-push3-play.generator :as gen]))
 
 ;; Boolean logic instructions
 
@@ -49,7 +48,7 @@
  {:sym-name 'boolean_rand
   :in []
   :out :push/boolean
-  :f (fn [_] (rand-nth [false true]))})
+  :f (fn [_] (gen/rand-bool))})
 
 ;; ---------------------------------
 

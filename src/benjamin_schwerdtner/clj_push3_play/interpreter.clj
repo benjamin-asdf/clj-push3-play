@@ -1,5 +1,6 @@
 (ns  benjamin-schwerdtner.clj-push3-play.interpreter
   (:require
+   [random-seed.core :refer [random *rng*]]
    [benjamin-schwerdtner.clj-push3-play.stack.pushstate :as stack]
    ;; [benjamin-schwerdtner.clj-push3-play.stack.state :as s-st]
    [benjamin-schwerdtner.clj-push3-play.prot :as prot]
@@ -68,23 +69,24 @@ Presumably for redefinition."
                   :stacks
                   :push/exec))
     state
-    (let [item (stack/peek-item state :push/exec)
-          state (stack/pop-item state :push/exec)
-          ;; every exec pop call is +1 :exec-counter
-          state (update state :exec-counter (fnil inc 0))
-          instruction (instructions/instruction item)]
-      (cond (not= instruction :no-instruction)
+    (binding [*rng* (random (:push/random-seed state 0))]
+      (let [item (stack/peek-item state :push/exec)
+            state (stack/pop-item state :push/exec)
+            ;; every exec pop call is +1 :push/num-executions
+            state (update state :push/num-executions (fnil inc 0))
+            instruction (instructions/instruction item)]
+        (cond (not= instruction :no-instruction)
               (instructions/execute-instruction state instruction)
-            (name? item) (handle-name state item)
-            (literal? item) (push-to-stack state item)
-            ;; item is a list
-            :else (reduce (fn [state p]
-                            (stack/push state :push/exec p))
-                    state
-                    ;; reverse, so the first item in
-                    ;; the list is the first exec
-                    ;; instruction
-                    (reverse item))))))
+              (name? item) (handle-name state item)
+              (literal? item) (push-to-stack state item)
+              ;; item is a list
+              :else (reduce (fn [state p]
+                              (stack/push state :push/exec p))
+                            state
+                            ;; reverse, so the first item in
+                            ;; the list is the first exec
+                            ;; instruction
+                            (reverse item)))))))
 
 (defn execute
   "Entry point for Push3 execution.
@@ -109,9 +111,9 @@ Presumably for redefinition."
   ([state program] (execute state program {}))
   ([state program {:keys [max-executions]}]
    (let [state (execute-load state program)]
-     (loop [state (assoc state :exec-counter 0)]
+     (loop [state (assoc state :push/num-executions 0)]
        (if (or (when max-executions
-                 (<= max-executions (:exec-counter state)))
+                 (<= max-executions (:push/num-executions state)))
                (empty? (-> state
                            :stacks
                            :push/exec)))
@@ -123,34 +125,20 @@ Presumably for redefinition."
 
 (defn setup-state
   []
-  (merge (config/defaults)
-         {:bindings {}
-          :instructions (instructions/all-instructions)
-          :stacks
-          {:push/boolean []
-           :push/char []
-           :push/clj-object []
-           :push/code []
-           :push/exec []
-           :push/float []
-           :push/integer []
-           :push/name []
-           :push/string []}}))
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+  (merge
+   (config/defaults)
+   {:bindings {}
+    :instructions (instructions/all-instructions)
+    :stacks
+    {:push/boolean []
+     :push/char []
+     :push/clj-object []
+     :push/code []
+     :push/exec []
+     :push/float []
+     :push/integer []
+     :push/name []
+     :push/string []}}))
 
 
 

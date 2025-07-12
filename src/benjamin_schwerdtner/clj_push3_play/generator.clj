@@ -1,6 +1,15 @@
 (ns benjamin-schwerdtner.clj-push3-play.generator
+  (:refer-clojure :exclude [rand rand-int rand-nth shuffle])
   (:require
-   [benjamin-schwerdtner.clj-push3-play.util :as util]))
+   [benjamin-schwerdtner.clj-push3-play.util :as util]
+   [random-seed.core :refer [rand-nth rand rand-int]]))
+
+;;
+;; NOTE:
+;; - be deliberate about using random functions only from random-seed.core namespace!
+;; - random seed is set by interpreter.clj
+;;
+
 
 
 ;; ?
@@ -12,10 +21,24 @@
 
 ;; ----------------------
 
-(defn rand-atom [atom-generators _random-seed]
-  ((rand-nth atom-generators)))
+(defn rand-atom
+  ([atom-generators _random-seed]
+   (rand-atom atom-generators))
+  ([atom-generators]
+   ((rand-nth atom-generators))))
 
 (defn generate-code
+  "Naive.
+
+  Returns a list that is a mix of lists and atoms.
+
+  branch-probability: A function that given a depth returns a probabilty for branching (making a nested list).
+
+  close-probability: dito, but for closing the current list (including being done with the top level form).
+  This is there because the output was often a nested list with nothing else.
+
+  max-points: code length counted by [[util/count-points]]. The output has max-points or less code points.
+  "
   [{:keys [max-points branch-probability atom-generators depth
            close-probability]
     :or {branch-probability (constantly 0.2)
@@ -34,15 +57,26 @@
                                  (if (< (rand)
                                         (branch-probability depth))
                                    (generate-code
-                                     (merge opts
-                                            {:depth (inc depth)
-                                             :max-points (- max-points
-                                                            points)}))
+                                    (merge opts
+                                           {:depth (inc depth)
+                                            :max-points (- max-points
+                                                           points)}))
                                    (rand-atom atom-generators)))))))))
 
+
+
+(defn rand-bool []
+  (rand-nth [true false]))
+
 (def default-generators
-  [(fn [] (rand-nth [true false]))
+  [rand-bool
    (fn [] (rand-int 100))
+   ;;
+   ;; ??
+   ;; This is not deterministic, but conceptually arguably it is,
+   ;; since every symbol is equivalent to the others.
+   ;; But calling = on the output programs won't work.
+   ;;
    (fn [] (gensym "push_gensym_"))
    ;; clj-objects
    (fn [] (rand-nth [{} #{} [] nil]))])
@@ -50,6 +84,12 @@
 (defn identifier-generators [identifiers]
   (let [identifiers (into [] identifiers)]
     [(fn [] (rand-nth identifiers))]))
+
+
+
+;; --------------------
+
+
 
 (comment
   (generate-code
