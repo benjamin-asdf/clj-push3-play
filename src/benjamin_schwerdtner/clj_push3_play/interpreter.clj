@@ -1,4 +1,4 @@
-(ns benjamin-schwerdtner.clj-push3-play.interpreter
+(ns  benjamin-schwerdtner.clj-push3-play.interpreter
   (:require
    [benjamin-schwerdtner.clj-push3-play.stack.pushstate :as stack]
    ;; [benjamin-schwerdtner.clj-push3-play.stack.state :as s-st]
@@ -55,20 +55,6 @@
 Presumably for redefinition."
   :f (fn [state] (assoc state ::name-quoted? true))})
 
-(instructions/register-instruction
- {:sym-name 'code_quote
-  :in []
-  :out :state
-  :doc "CODE.QUOTE causes the next encountered piece of code, whatever it is, to be pushed onto the CODE stack rather than being executed.
-
-NOTE: this moves the next item in the EXEC stack to the CODE stack.
-"
-  :f (fn [state]
-       ;; the existence of the EXEC stack permits a simpler implementation: simply move the top item of the EXEC stack to the CODE stack
-       (let [item (stack/peek-item state :push/exec)]
-         (-> state
-             (stack/pop-item :push/exec)
-             (stack/push :push/code item))))})
 
 ;; using the Push EXEC stack for recursion, inside Push
 
@@ -141,7 +127,7 @@ NOTE: this moves the next item in the EXEC stack to the CODE stack.
   (merge (config/defaults)
          {:bindings {}
           :instructions (instructions/all-instructions)
-          :stacksuse-sync-external-store/shim/index.js
+          :stacks
           {:push/boolean []
            :push/char []
            :push/clj-object []

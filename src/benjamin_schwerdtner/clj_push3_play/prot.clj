@@ -29,6 +29,8 @@
   (m-typeof-item [_this] :push/name)
   java.lang.Character
   (m-typeof-item [_this] :push/char)
+  clojure.lang.Keyword
+  (m-typeof-item [_this] :push/clj-object)
   Object
   (m-typeof-item [_this] :push/clj-object)
   nil

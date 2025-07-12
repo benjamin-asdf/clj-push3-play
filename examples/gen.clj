@@ -8,6 +8,24 @@
 (defn execute [thecode]
   (-> (push/execute (push/setup-state) thecode {:max-executions 1e4}) :stacks))
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 (comment
 
   (defn code []
@@ -17,19 +35,19 @@
             (->
              (push/setup-state)
              (assoc-in [:parameters :max-points-in-random-expressions] 250))
-            (list 200 'code_rand))
+            (list 50 'code_rand))
            :stacks
            :push/code)))
 
+  (time (doall (for [n (range 1000)]
+                 (let [thecode (code)]
+                   (def thecode thecode)
+                   (-> (push/execute (push/setup-state)
+                                     thecode
+                                     {:max-executions 1e4})
+                       :stacks)))))
 
-  (time
-   (doall
-    (for [n (range 100)]
-      (let
-          [thecode (code)]
-          (def thecode thecode)
-          (-> (push/execute (push/setup-state) thecode {:max-executions 1e4})
-              :stacks)))))
+
 
 
 

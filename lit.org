@@ -1,0 +1,29 @@
+* Multiobjective evolutionary algorithms MOEAs
+
+- problem with several conflicting objective and pareto optimal solutions
+
+https://www.sciencedirect.com/science/article/abs/pii/S2210650211000058
+
+* Meta-Learning
+
+Population-Based Evolution Optimizes a Meta-Learning Objective
+https://arxiv.org/abs/2103.06435
+
+#+begin_quote
+We argue that population-based evolutionary systems with non-static fitness landscapes naturally bias towards high-evolvability genomes, and therefore optimize for populations with strong learning ability. We demonstrate this claim with a simple evolutionary algorithm, Population-Based Meta Learning (PBML), that consistently discovers genomes which display higher rates of improvement over generations.
+#+end_quote
+
+* Biology
+
+** Mutator Genes
+
+Role of mutator alleles in adaptive evolution
+https://www.nature.com/articles/42696
+
+** Mutator Phenotype Hypothesis (Cancer research)
+
+Loeb, L. A. (2016). Human cancers express a mutator phenotype: hypothesis, origin, and consequences. Cancer Res. 76 (8), 2057–2059. doi: 10.1158/0008-5472.CAN-16-0794
+
+
+https://www.frontiersin.org/journals/genetics/articles/10.3389/fgene.2019.00713/full
+The Mutator Phenotype: Adapting Microbial Evolution to Cancer Biology

@@ -436,6 +436,10 @@ otherwise it recursively executes the first item of the CODE stack."
  {:sym-name 'code_quote
   :in [:push/exec]
   :out :push/code
+  :doc "CODE.QUOTE causes the next encountered piece of code, whatever it is, to be pushed onto the CODE stack rather than being executed.
+
+NOTE: this moves the next item in the EXEC stack to the CODE stack.
+"
   :f (fn [_ exec-item] exec-item)})
 
 (register-instruction

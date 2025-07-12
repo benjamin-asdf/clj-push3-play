@@ -1,0 +1,112 @@
+Similar to auto-constructive genetic program of push3.
+
+
+* Meta Evolution
+
+- 1. mutation rate is dynamic
+- 2. hypothesis is in the realm of adapatability.
+  I.e. bacteria is not doing well -> increase mutation rate, try to evolve away from the problem.
+- 3. =2= is an example of a dynamic mutation algorithm.
+- 4. Idea: Mutation operators should be evolved themselves, (similar to 'Meta-Learning' in machine learning).
+
+- Call the evolution of evolability 'meta evolution'.
+- Basic Idea:
+  1. genetic material (=E=) evoloves against a fitness landscape (=fitness=).
+  2. generate variations via the mutator operator =mut=.
+  3. =mut= itself is a set of evolved algorithms, with genetic material =M=.
+  4. The signature of mutation in this system is something like =variants = mut(individual-of-E,M)=
+     or =mutate(population,mutator-population)=.
+
+
+* Baldwin and meta evolutionary Baldwin effects:
+
+
+- zeroeth order (no Baldwin Effect): 'genetic determinism', =E= specifies a fixed reaction norm. A program without dynamical operators,
+  a fixed circuit (static).
+  I.e. Worm moves away from light, slows down in darkness.
+
+- first order (Baldwin Effect): Allels in =E= with a dynamic reaction norm (reaction norm can be updated on the fly),
+  allowing learning in the adaptive domain.
+  A program with dynamic operators, a circuit that can change depending on experiences with the environment.
+  I.e. Worms makes experiences in the adaptive domain. Some individuals learn to move to light.
+
+  The adaptation is the capacity to learn. The relevant thing for the individuals is that learning the alternatives is possible.
+  (can learn to move or move away from light).
+
+
+- second order (transgenerational Baldwin Effect): Adaptations in =E= allow biological signals transgenerationally (epigenetics).
+  Morphogenesis etc. can use information from parents, parent-parents etc. in a dynamic reaction norm.
+  I.e. The worm's parent was starved, learned that environment is harsh;
+
+  Adapations can make the morphogenesis react with smaller growth (note that since those are adaptations, they are evolved themselves).
+
+  It means that =E= can be adapted to different environments, and the signal for what environment is present can come from epigenetics.
+
+  The capacity to learn across generations is the adaptation. The relevant thing is that the signals/context for dynamism
+  is not limited to the individual.
+
+
+  This is also called *Neo-Lamarckism* in the literature.
+
+  Implemenation: There is =epigenetic-data= available across generations. In DNA this is done with epigenetic markers.
+  Could be done by associating epigenetic-data for each individual in =E=, or with a lookup of genome snippets to epigenetic data.
+  Some form of 'epigenetic register' as part of the genetic algorithm.
+
+- third order (meta-evolutionary Baldwin Effect): Mutation operators (allels in =M=) don't need to be static. Mutation operators can take
+  epigentic signals into account;
+
+  Example:
+  1. Mark 'old' genetic material in =E= (epigenetically), Allels in =M= mutate old genetic material less.
+     This is an adapation of =M=, the alternatives are possible. Other allels would make old genetic material mutate more, or whatever.
+  2. Via epigenetics, the signal can from the enviroment, for instance alles in =M= can increase mutation rate in case the individual
+     was starving.
+
+  The adapation is having dynamic evolvability.
+
+  Implemenation: =mut= has both genome and epigenetic data as input.
+
+
+-----------------------
+
+So far I take this as maybe using slightly non standard terminology, but uncontroversial in the sense that any sane biologist should agree.
+
+-----------------
+
+Hm, not sure yet about this:
+
+
+- Leap of faith: Allow =M= to also write into the epigenetic data. Allow signals from =mut= (mutation operator) to travel
+  transgenerationally (via viruses etc. across gene pools?).
+
+  Equivalent to second order Baldwin effect in =E=; fourth order meta-evolutionary Baldwin Effect:
+
+  The adaptation is learning in the domain of evolvability?
+
+  Either way, allow =M= to read and write epigenetic data makes sense.
+
+
+
+---------------------
+
+Dangerously close to Lamarckism? Darwinism never said you can be one step more dynamic (Baldwin).
+In my view, the essential point of Darwinism is causal contingency. I.e. there are no magic leaps in the world. (Dennett's Sky Hooks).
+
+Evolving an algorithm that utilizes differnent information flows - perfectly fine under a Darwinian paradigm.
+
+
+I used to think evolution is about adaptation, but /adaptations about adaptations/ are so much richer.
+
+1. We can expect evolvability to be evolved.
+2. I suggest seeing 'non standard' information flows as adaptations in the domain of evolvability.
+3. We should even expect strange information flows, since =mut= is evolved - life finds a way.
+
+
+- transposable elements, viruses, the virosphere: Allow information to flow across the tree of life in principle.
+  (Licences me to assume any information flow in my evolutionary algorithms).
+
+Just some random and wrong ideas:
+
+- epigenetics -> germ cells (would make sense if there is a copy mechanism from somatic to germ cells?)
+- virus or sth. -> epigenetics of individual (usually somatic cells).
+- dead individual A ->  carrion, bacteria, viruses, something -> individual B (once every millionth generation, but worth it?)
+  Licences me to keep genomes of dead individuals around, as part of the algorithm.

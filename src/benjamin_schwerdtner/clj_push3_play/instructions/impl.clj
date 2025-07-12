@@ -17,10 +17,14 @@
 
   "
   [state {:as instr :push.instruction/keys [in out f]}]
-  ;; (def state state)
-  ;; (-> state :stacks :push/float)
-  ;; (def instr instr)
-  (let [in-vals-info (reduce (fn [[s vs] t]
+  (def state state)
+  (-> state :stacks :push/float)
+  (-> state :stacks)
+  (def instr instr)
+  (let [
+        {:push.instruction/keys [in out f]} instr
+
+        in-vals-info (reduce (fn [[s vs] t]
                                (let [stack (-> s
                                                :stacks
                                                t)]
