@@ -90,7 +90,6 @@ In my view, the essential point of Darwinism is causal contingency. I.e. there a
 
 Evolving an algorithm that utilizes differnent information flows - perfectly fine under a Darwinian paradigm.
 
-
 I used to think evolution is about adaptation, but /adaptations about adaptations/ are so much richer.
 
 1. We can expect evolvability to be evolved.
@@ -107,3 +106,9 @@ Just some random and wrong ideas:
 - virus or sth. -> epigenetics of individual (usually somatic cells).
 - dead individual A ->  carrion, bacteria, viruses, something -> individual B (once every millionth generation, but worth it?)
   Licences me to keep genomes of dead individuals around, as part of the algorithm.
+
+
+---------------------
+
+Related is the notion that mutation would be biased to output adaptive outcomes. This seems to be teleological at first glance,
+but is perfectly fine when you consider that =mut= has adaptations itself.

@@ -72,6 +72,14 @@
   ;; 169095539031224786783005943054018809504857809832788542811264853404115852114259629956294246400000000000000N
 
 
+  (->
+   (push/execute
+    (->
+     (push/setup-state)
+     (assoc-in [:parameters :max-points-in-random-expressions] 250))
+    (list 2 'code_rand))
+   :stacks
+   :push/code)
 
 
 

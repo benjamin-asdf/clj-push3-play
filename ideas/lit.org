@@ -15,6 +15,18 @@ We argue that population-based evolutionary systems with non-static fitness land
 
 * Biology
 
+** Evolvability
+
+Michael Barnett
+
+Experimental evolution of evolvability
+https://pubmed.ncbi.nlm.nih.gov/39977489/
+
+#+begin_quote
+In this work, we report the evolution of enhanced evolvability through localized hypermutation in experimental populations of bacteria. The evolved mechanism is analogous to the mutation-prone sequences of contingency loci observed in pathogenic bacteria. Central to this outcome was a lineage-level selection process, where success depended on the capacity to evolve between two phenotypic states. Subsequent evolution showed that the hypermutable locus is itself evolvable with respect to alterations in the frequency of environmental change. Lineages with localized hypermutability were more likely to acquire additional adaptive mutations
+#+end_quote
+
+
 ** Mutator Genes
 
 Role of mutator alleles in adaptive evolution

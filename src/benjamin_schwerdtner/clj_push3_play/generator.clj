@@ -12,8 +12,6 @@
 
 ;; ----------------------
 
-
-
 (defn generate-code
   [{:keys [max-points branch-probability atom-generators depth
            close-probability]
@@ -26,8 +24,10 @@
     (let [points (util/count-points program)]
       (if (< (rand) (close-probability depth))
         program
-        (if (<= max-points (util/count-points program))
-          prev-program
+        (cond
+          (= max-points points) program
+          (< max-points points) prev-program
+          :else
           (recur program
                  (conj program
                        (if (< (rand) (branch-probability depth))
@@ -38,7 +38,6 @@
                                                    points)}))
                          ((first (shuffle atom-generators)))))))))))
 
-
 (def default-generators
   [(fn [] (rand-nth [true false]))
    (fn [] (rand-int 100))
@@ -46,10 +45,12 @@
    ;; clj-objects
    (fn [] (rand-nth [{} #{} [] nil]))])
 
-
 (defn identifier-generators [identifiers]
   (let [identifiers (into [] identifiers)]
     [(fn [] (rand-nth identifiers))]))
+
+(defn rand-atom [generators random-seed]
+  (shuffle))
 
 
 
