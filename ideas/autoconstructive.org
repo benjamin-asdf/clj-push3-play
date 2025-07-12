@@ -1,0 +1,52 @@
+I wanted to call it meta-evolution.
+
+
+* Auto constructive evolution
+
+L Spector:
+
+https://www.amherst.edu/people/facstaff/lspector
+
+Spector, L., and A. Robinson. 2002. Genetic Programming and Autoconstructive Evolution with the Push Programming Language. In Genetic Programming and Evolvable Machines, Vol. 3, No. 1, pp. 7-40.
+
+
+- pushGP: A genetic programing framework evolving Push programs.
+- Pushpop: evolves Push programs but does so while simultanously evolving its own evolutionary mechanisms.
+
+** Production of children
+
+- idea #1: Whatever is left on the code stack is a potention Child of a program.
+- in pushpop that is done with a CHILD stack.
+- one for each /fitness case/, because the program is executed several times.
+
+** Selection
+
+- tournement:
+  for each positin in the next generation =n= random individuals are picked
+  from the current gneration and a random child of the best of these n individuals is chosen to survive.
+
+
+** Sex
+
+- implemented by allowing a program to access the EXPRESSION stack of other individuals - LOL kinda funny
+
+
+instructions:
+
+- NEIGHBOR: Returns the CODE of an individual designated by INTEGER n. Individuals are linearly sorted by code similarity. Large n is a distant individual.
+- ELDER: Returns the program of a winning individual of the prev. generation (designated by tournament size, guess it means the tournaments are indexed by size).
+- OTHER: Makes a tournament amoung the current generation, using the parents fitness.
+- OTHER-TAG: Takes a FLOAT and searches the current generation for a program containing the tag (not sure what containing is).
+  Also not sure 'why usually disabled' and slow. Could just index programs by tag?
+
+** Diversity management
+
+- disallow identical program as parent.
+- disallow identical programs.
+- needed to prevent premature convergence.
+
+Sounds like a problem.
+
+** Reproductive competence
+
+- they need to help out the early stage because the programs didn't evolve to use CHILD etc. instructions yet.

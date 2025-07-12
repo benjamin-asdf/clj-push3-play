@@ -27,3 +27,60 @@ Loeb, L. A. (2016). Human cancers express a mutator phenotype: hypothesis, origi
 
 https://www.frontiersin.org/journals/genetics/articles/10.3389/fgene.2019.00713/full
 The Mutator Phenotype: Adapting Microbial Evolution to Cancer Biology
+
+
+* H Suzuki
+
+https://pubmed.ncbi.nlm.nih.gov/?term=Suzuki+H&cauthor_id=10829087
+
+
+* G Chaitin
+
+
+- 'Metamathematics'
+- Big idea 1: Mutation operators based on algorithmic complexity.
+
+  Example: =inverse= flips every bit in the genome. Very unlikely in convenetional 'distance based' mutation operators (very unlikely to occur),
+  but a primitive operation using algorithmic mutation (so very likely to occur).
+
+  The Hamming distance is maximal but the algorithmic complexity distance is 1 step.
+
+
+- Also R. Watson: 'Gradualism' might be wrong. Mutation does not need to be small changes.
+  Darwinism needs to be separated from the idea of small changes.
+
+
+------------------
+
+Benjamin:
+
+- *meta evolution*: An evolutionary algorithm where the mutation operators themselves are evolved programs.
+- very similar work exists under the term 'meta-learning' in machine learning.
+
+--------------------
+
+Dangerously close to 'punctuated equilibria'?
+
+No, punctuated equilibria is a theory of the rate of evolutionary change;
+It does not say anything about the algorithmic structure of natural selection, thereby is a relatively weak claim to begin with.
+
+Exactly this is also Dawkin's main line of critique: Punctuated Equilibria in effect makes a strawman of gradualism, what he calls 'constant speed' gradualism.
+
+Nobody was on the hill of 'constant speed gradualism' to begin with. The rate of change of evolution is a strictly secondary problem
+to the fundamental problem of 'where cometh the design?'.
+
+Gradualism actually as a statement of the structure of natural selection says 'there are small changes' (R. Watson).
+More abstractly (what I think makes sense), there are only steps contingent in physical reality, no magic leaps (Dennett's Sky Hooks).
+
+This is the notion of Darwinism/ Gradualism that Dawkins and Dennett would update to, being posed with the problem - I'm relatively certain of that.
+
+For instance, it is obvious that a genome can for example =duplicate=, this is not 'a small change' in one sense, but a non-magic step nonetheless.
+
+
+Within the Darwinian paradigm, one can improve on the answer. Main questions of our time are 'how is evolution open ended?' (creative)
+and 'why does evolution work so well?'
+
+
+* R Watson
+
+/Compositional Evolution/ Richard A. Watson, 2006

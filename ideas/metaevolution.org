@@ -1,4 +1,5 @@
-Similar to auto-constructive genetic program of push3.
+
+
 
 
 * Meta Evolution
