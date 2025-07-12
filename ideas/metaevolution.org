@@ -1,7 +1,14 @@
+* Implementation:
+
+- some form of 'dual evolution', splitting out the genomic material =M=
+  that provides the mutation operator =mut= with the target domain genetic material =E=.
+
 * Meta Evolution
 
+- from [[file:lit.org]] 'biology'.
+
 - 1. mutation rate is dynamic
-- 2. hypothesis is in the realm of adapatability.
+- 2. hypothesis: This is in the realm of adapatability  / 'evolveability'.
   I.e. bacteria is not doing well -> increase mutation rate, try to evolve away from the problem.
 - 3. =2= is an example of a dynamic mutation algorithm.
 - 4. Idea: Mutation operators should be evolved themselves, (similar to 'Meta-Learning' in machine learning).
@@ -12,8 +19,7 @@
   2. generate variations via the mutator operator =mut=.
   3. =mut= itself is a set of evolved algorithms, with genetic material =M=.
   4. The signature of mutation in this system is something like =variants = mut(individual-of-E,M)=
-     or =mutate(population,mutator-population)=.
-
+     or =mutate(population-of-E,mutator-population)=.
 
 * Baldwin and meta evolutionary Baldwin effects:
 
@@ -22,7 +28,7 @@
   a fixed circuit (static).
   I.e. Worm moves away from light, slows down in darkness.
 
-- first order (Baldwin Effect): Allels in =E= with a dynamic reaction norm (reaction norm can be updated on the fly),
+- first order (Classical Baldwin Effect): Allels in =E= with a dynamic reaction norm (reaction norm can be updated on the fly),
   allowing learning in the adaptive domain.
   A program with dynamic operators, a circuit that can change depending on experiences with the environment.
   I.e. Worms makes experiences in the adaptive domain. Some individuals learn to move to light.
@@ -112,3 +118,13 @@ Just some random and wrong ideas:
 
 Related is the notion that mutation would be biased to output adaptive outcomes. This seems to be teleological at first glance,
 but is perfectly fine when you consider that =mut= has adaptations itself.
+
+
+---------------------
+
+This view actually sort of puts life into the platonic mathematical realm of possible search processes.
+=mut= is even more alive than =E=. Life is mining mathematical creativity.
+
+It seems so disembodied but then the soul and the spirit are disembodied things, too?
+Biology was already disembodying us, when it showed that we are information patterns.
+Organisms are more like the eye of eddy, not the water.
