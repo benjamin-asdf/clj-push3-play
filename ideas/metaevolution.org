@@ -1,7 +1,3 @@
-
-
-
-
 * Meta Evolution
 
 - 1. mutation rate is dynamic
