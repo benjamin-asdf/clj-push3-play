@@ -17,9 +17,7 @@
 
   "
   [state {:as instr :push.instruction/keys [in out f]}]
-  (let [
-        {:push.instruction/keys [in out f]} instr
-
+  (let [{:push.instruction/keys [in out f]} instr
         in-vals-info (reduce (fn [[s vs] t]
                                (let [stack (-> s
                                                :stacks
@@ -28,8 +26,8 @@
                                    (ensure-reduced ::empty)
                                    [(update-in s [:stacks t] pop)
                                     (conj vs (peek stack))])))
-                             [state []]
-                             in)]
+                       [state []]
+                       in)]
     (if (= in-vals-info ::empty)
       ;; NOOP
       ;;
@@ -47,7 +45,7 @@
           ;; program go forward.
           err? state
           (= out :state) outcome
-          :else (update-in state [:stacks out] conj outcome))))))
+          :else (stack/push state out outcome))))))
 
 (defonce instruction-table (atom {}))
 

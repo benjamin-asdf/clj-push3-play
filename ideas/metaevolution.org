@@ -36,8 +36,16 @@
   The adaptation is the capacity to learn. The relevant thing for the individuals is that learning the alternatives is possible.
   (can learn to move or move away from light).
 
+- second order Ruminative Baldwin Effect (Dennett's Popperian Creature):
+  Allels in =E= create an informaton processing system allowing for ruminative cognition, having the ideas die in their stead.
 
-- second order (transgenerational Baldwin Effect): Adaptations in =E= allow biological signals transgenerationally (epigenetics).
+  Worm creates a world model during brain development, uses the world model to make decisions,
+  categorizes of situations, makes analagies. Worm can predict themselves in novel situations.
+
+
+  The adaptation is an information processing system that allows having ideas.
+
+- transgenerational Baldwin Effect: Adaptations in =E= allow biological signals transgenerationally (epigenetics).
   Morphogenesis etc. can use information from parents, parent-parents etc. in a dynamic reaction norm.
   I.e. The worm's parent was starved, learned that environment is harsh;
 
@@ -54,6 +62,8 @@
   Implemenation: There is =epigenetic-data= available across generations. In DNA this is done with epigenetic markers.
   Could be done by associating epigenetic-data for each individual in =E=, or with a lookup of genome snippets to epigenetic data.
   Some form of 'epigenetic register' as part of the genetic algorithm.
+
+
 
 - third order (meta-evolutionary Baldwin Effect): Mutation operators (allels in =M=) don't need to be static. Mutation operators can take
   epigentic signals into account;

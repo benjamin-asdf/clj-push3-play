@@ -1,0 +1,23 @@
+* Ruminative meta-evolutionary Effects (extremely Hypothetical)
+
+Taking file:./metaevolution.org into account.
+
+In analogy to the ruminative Baldwin Effect, using an information proccesing system to create a world model and make decisions based on it etc.
+There would be hypothetical ruminative meta-evolutionary processes.
+
+Mutation operators would not only take epigenetic data into acount in a simple input-output algorithmic system;
+
+But mutation operators would somewhere, somehow make information processing that is akin to for instance predicting how an evolutionary path
+*would* do, having those ideas die in their stead.
+
+This would require representing datastructures on which mutation operator information processing could operate.
+
+It would be thoughts about what to mutate.
+
+Where? On what time scales? No clue. Something something viruses, transposable elements?
+
+-------------------
+
+This would map in my mind onto what is said about *natures disposition to beauty*.
+
+Is this actually is a difference to /third order (meta-evolutionary Baldwin Effect)/? Not sure.

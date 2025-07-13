@@ -1,10 +1,13 @@
 (ns benjamin-schwerdtner.clj-push3-play.instructions.mutation
-  (:require
-   [benjamin-schwerdtner.clj-push3-play.instructions.impl :refer
-    [register-instruction] :as impl]
-   [benjamin-schwerdtner.clj-push3-play.stack.pushstate :as stack]
-   [benjamin-schwerdtner.clj-push3-play.util :as util :refer [ensure-list]]
-   [benjamin-schwerdtner.clj-push3-play.generator :as gen]))
+  (:require [benjamin-schwerdtner.clj-push3-play.instructions.impl
+             :refer [register-instruction] :as impl]
+            [benjamin-schwerdtner.clj-push3-play.stack.pushstate :as
+             stack]
+            [benjamin-schwerdtner.clj-push3-play.util :as util :refer
+             [ensure-list]]
+            [benjamin-schwerdtner.clj-push3-play.generator :as gen]
+            [random-seed.core :refer [rand rand-int]])
+  (:refer-clojure :exclude [rand rand-int]))
 
 ;; Supposed to be the primitive instructions of Push mutation operators.
 
@@ -224,6 +227,45 @@
   '(:b :a :c :d :e))
 
 
-
-
 ;; -------------------------
+;;
+;; sex, recombination, symbiosis
+
+(register-instruction
+ {:sym-name 'mut_interleave
+  :in [:push/code :push/code]
+  :out :push/code
+  :f
+  (fn [_ a b]
+    (apply list (interleave (ensure-list a) (ensure-list b))))})
+
+
+;; code namespace already does some:
+
+;; code_append
+;; code_s
+
+(register-instruction
+ {:sym-name 'mut_drop_rand
+  :in [:push/code :push/float]
+  :out :push/code
+  :doc "Drop elements from CODE with FLOAT chance."
+  :f
+  (fn [_ code prop]
+    (let [code (ensure-list code)
+          drop-mask (map #(< % prop)
+                         (.toArray (.doubles random-seed.core/*rng*
+                                             (count code))))]
+      (apply list
+             (map first (remove second (map vector code drop-mask))))))})
+
+(register-instruction
+ {:sym-name 'mut_drop_rand_one
+  :in [:push/code :push/float]
+  :out :push/code
+  :doc "Drop a random element from CODE."
+  :f
+  (fn [_ code]
+    (let [code (ensure-list code)
+          idx (rand-int (count code))]
+      (apply list (concat (take idx code) (drop (inc idx) code)))))})

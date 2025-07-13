@@ -15,7 +15,7 @@
   (push/execute
    (push/setup-state)
    program
-   {:max-executions 50}))
+   {:max-executions 250}))
 
 ;; -----------------------
 
@@ -24,42 +24,35 @@
 ;; - name the highest number you can
 ;;
 ;; NOTE:
+;;
+;; - The maximum busy-beaver in this push implementation is 1e12 because of the coercion in
+;;   benjamin-schwerdtner.clj-push3-play.stack.pushvalues
+;;
+;; - frugal busy beaver is more interesting
+;;
 
 (defn busy-beaver
   [individual]
-  (assoc individual
-         :fitness (let [push-state (execute (:push/program individual))]
-                    (max (or (-> push-state
-                                 :stacks
-                                 :push/integer
-                                 peek)
-                             0)
-                         ;; (or (-> push-state :stacks :push/float
-                         ;; peek) 0)
-                         ))))
+  (let [push-state (execute (:push/program individual))]
+    (assoc individual
+      :fitness (max (or (-> push-state
+                            :stacks
+                            :push/integer
+                            peek)
+                        0))
+      :push-state push-state)))
+
 
 (comment
   (:fitness (busy-beaver {:push/program (list 100)}))
   100
-
-  ;; actually with 200 executions this number becomes so large that bigint arithmetic is too slow.
-  ;; with 120 executions it is very slow to print the number
-  ;;
-
-  (def ftn
-    (:fitness (busy-beaver {:push/program '(2 2 exec_y (integer_dup integer_*))})))
-
-
-
-  )
+  ;; max:
+  (:fitness (busy-beaver {:push/program '(2 2 exec_y (integer_dup integer_*))})))
 
 
 ;; -----------------
 
-
-
 (comment
-
   (defn code
     []
     (into (list)
@@ -79,10 +72,11 @@
         (sort-by
          :fitness
          (fn [a b] (compare b a))
-         (filter (comp #(< 0 %) :fitness)
-                 (for [individual
-                       (repeatedly 100 (fn [] {:push/program (code)}))]
-                   (assoc individual :fitness (busy-beaver individual)))))))
+         (filter
+          (comp #(< 0 %) :fitness)
+          (for [individual
+                (repeatedly 100 (fn [] {:push/program (code)}))]
+            (busy-beaver individual))))))
 
 
 
@@ -94,11 +88,20 @@
 ;; - name the largest integer you can   -> out-num
 ;; - fitness = out-num / number of execution steps
 ;;
+;; - (in the context of this push implementation)
+;;
 
-(defn frugal-busy-beaver [individual]
+(defn frugal-busy-beaver
+  [individual]
   (let [push-state (execute (:push/program individual))
-        out-num (max (or (-> push-state :stacks :push/integer peek) 0))]
-    (/ out-num (:push/num-executions push-state))))
+        out-num (max (or (-> push-state
+                             :stacks
+                             :push/integer
+                             peek)
+                         0))]
+    (merge individual
+           {:fitness (/ out-num (:push/num-executions push-state))
+            :push-state push-state})))
 
 (comment
 
@@ -109,51 +112,13 @@
                          (for [individual (repeatedly
                                            100
                                            (fn [] {:push/program (code)}))]
-                           (assoc individual
-                                  :fitness (frugal-busy-beaver individual))))))
+                           (frugal-busy-beaver individual)))))
+
+
+
 
   ;; ----------------------
 
 
 
   )
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-(comment
-  ;; seam
-
-  (defn single-feature-entity [])
-
-  (declare n)
-
-  ;; E
-  ;; this needs to cover all primitives so that they are available in the ecosystem
-  (def ecosystem (repeatedly n single-feature-entity))
-
-  (declare composition unstable? stop-condition?)
-
-  (loop [[a b :as E] ecosystem]
-    (if (stop-condition? ecosystem)
-      ecosystem
-      (let [a+b (composition a b)]
-        (if
-            (unstable? a+b a b)
-            ecosystem
-            (conj ecosystem a+b)))))
-
-  ;; Pareto Dominance
-  (defn unstable? [ecosystem a+b a b]
-    (some)))
