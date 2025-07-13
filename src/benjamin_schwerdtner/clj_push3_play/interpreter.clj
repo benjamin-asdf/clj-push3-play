@@ -75,6 +75,7 @@ Presumably for redefinition."
             ;; every exec pop call is +1 :push/num-executions
             state (update state :push/num-executions (fnil inc 0))
             instruction (instructions/instruction item)]
+        (def state state)
         (cond (not= instruction :no-instruction)
               (instructions/execute-instruction state instruction)
               (name? item) (handle-name state item)
@@ -368,4 +369,76 @@ Presumably for redefinition."
     (execute-load
      (setup-state)
      '(code_quote code_frominteger 10 5 code_do*range))
-    (range))))
+    (range)))
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  (map
+   :stacks
+   (reductions
+    (fn [s _]
+      (let [s2 (execute-1 s)]
+        (if (= s2 s)
+          (ensure-reduced s)
+          s2)))
+    (execute-load
+     (setup-state)
+     '(2 2 exec_y (integer_dup integer_*)))
+    (range 25)))
+
+
+  (time (last (take 20 (iterate #(*' % %) 65536))))
+
+
+  )

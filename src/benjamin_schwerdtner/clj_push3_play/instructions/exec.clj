@@ -157,6 +157,51 @@ otherwise it recursively executes the first item of the CODE stack."
          alternative))})
 
 
+;; If the top BOOLEAN is TRUE, leaves the first item on the EXEC stack to be
+;; executed. Otherwise, it removes it. Acts as a NOOP unless there is at least
+;; one item on the EXEC stack and one item on the BOOLEAN stack
+
+(register-instruction
+ {:sym-name 'exec_when
+  :in [:push/boolean :push/exec]
+  :out :state
+  :doc ""
+  :f (fn [state condition consequent]
+       (if condition
+         (stack/push state :push/exec consequent)
+         state))})
+
+;; Keeps executing the top instruction on the EXEC stack while the top item on
+;; the BOOLEAN stack is true
+
+(register-instruction
+ {:sym-name 'exec_while
+  :in [:push/boolean :push/exec]
+  :out :state
+  :doc "EXEC.WHILE: Keeps executing the top instruction on the EXEC stack while the top item on the BOOLEAN stack is true."
+  :f (fn [state condition to-do]
+       (if condition
+         (-> state
+             (stack/push :push/exec 'exec_while)
+             (stack/push :push/exec to-do))
+         ;; If the condition is false, just return the state unchanged.
+         state))})
+
+;; Keeps executing the top instruction on the EXEC stack while the top item on
+;; the BOOLEAN stack is true. Differs from :exec_while in that it executes
+;; the top instruction at least once
+
+(register-instruction
+ {:sym-name 'exec_do_while
+  :in [:push/boolean :push/exec]
+  :out :state
+  :doc "EXEC.DO-WHILE: Keeps executing the top instruction on the EXEC stack while the top item on the BOOLEAN stack is true. Differs from EXEC.WHILE in that it executes the top instruction at least once."
+  :f (fn [state condition to-do]
+       (-> state
+           (stack/push :push/exec 'exec_while)
+           (stack/push :push/exec to-do)))})
+
+
 ;; EXEC.K: The Push implementation of the "K combinator". Removes the second item on the EXEC stack.
 
 (register-instruction
@@ -165,6 +210,7 @@ otherwise it recursively executes the first item of the CODE stack."
   :out :push/exec
   :f (fn [_ a b] a)
   :doc "EXEC.K: The Push implementation of the \"K combinator\". Removes the second item on the EXEC stack."})
+
 
 
 ;; EXEC.S: The Push implementation of the "S combinator". Pops 3 items from the EXEC stack, which we will call A, B, and C (with A being the first one popped). Then pushes a list containing B and C back onto the EXEC stack, followed by another instance of C, followed by another instance of A.
@@ -176,25 +222,30 @@ otherwise it recursively executes the first item of the CODE stack."
   :f (fn [state a b c]
 
        ;; (S a b c)
-       ;; =>
-       ;; (a c (b c))
+       ;;
+       ;; =>  (a c (b c))
 
        (->
         (stack/push state :push/exec (list b c))
         (stack/push :push/exec c)
         (stack/push :push/exec a)))
+
+
   :doc "EXEC.S: The Push implementation of the \"S combinator\". Pops 3 items from the EXEC stack, which we will call A, B, and C (with A being the first one popped). Then pushes a list containing B and C back onto the EXEC stack, followed by another instance of C, followed by another instance of A."})
+
+
 
 
 ;; EXEC.Y: The Push implementation of the "Y combinator". Inserts beneath the top item of the EXEC stack a new item of the form "( EXEC.Y <TopItem> )".
 
-
 (register-instruction
  {:sym-name 'exec_y
   :in [:push/exec]
-  :out :push/exec
+  :out :state
   :f (fn [state top-item]
-       (stack/push state :push/exec (list 'exec_y top-item)))
+       (-> state
+           (stack/push :push/exec (list 'exec_y top-item))
+           (stack/push :push/exec top-item)))
   :doc "EXEC.Y: The Push implementation of the \"Y combinator\". Inserts beneath the top item of the EXEC stack a new item of the form \"( EXEC.Y <TopItem> )\"."})
 
 
