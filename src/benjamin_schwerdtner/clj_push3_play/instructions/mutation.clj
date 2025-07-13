@@ -1,13 +1,16 @@
 (ns benjamin-schwerdtner.clj-push3-play.instructions.mutation
   (:require [benjamin-schwerdtner.clj-push3-play.instructions.impl
              :refer [register-instruction] :as impl]
-            [benjamin-schwerdtner.clj-push3-play.stack.pushstate :as
-             stack]
             [benjamin-schwerdtner.clj-push3-play.util :as util :refer
              [ensure-list]]
-            [benjamin-schwerdtner.clj-push3-play.generator :as gen]
-            [random-seed.core :refer [rand rand-int]])
+            [random-seed.core :refer [rand-int]])
   (:refer-clojure :exclude [rand rand-int]))
+
+
+;; maybe 'variation' as name is more clean/ abstract and has more beautiful connotations?
+
+
+
 
 ;; Supposed to be the primitive instructions of Push mutation operators.
 

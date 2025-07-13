@@ -10,5 +10,4 @@ Clojush, an implementation of Push/PushGP in Clojure that has been used for many
 
 - Heavily reuse Clojush source code. 
 - Be slighly more data oriented.
-- Split out the push3 interpreter from a genetic programing framework.
 

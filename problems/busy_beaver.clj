@@ -105,6 +105,7 @@
 
 (comment
 
+
   (take 3
         (sort-by :fitness
                  (fn [a b] (compare b a))
@@ -119,6 +120,31 @@
 
   ;; ----------------------
 
+  (def m-ecosystem (repeatedly 100 (fn [] {:push/program (code)})))
+  (def e-ecosystem (repeatedly 100 (fn [] {:push/program (code)})))
+
+  (def dat
+    (doall
+     (for [m
+           [{:push/program (list 'mut_drop_rand_one)}]]
+       (doall
+        (for [e e-ecosystem]
+          (let [e2 {:push/program
+                    (mut/mutate (:push/program e)
+                                (:push/program m))}]
+            (if (<= (:fitness (frugal-busy-beaver e))
+                    (:fitness (frugal-busy-beaver e2)))
+              [:inc [m e2]]
+              [:no-inc [e]])))))))
 
 
+  (remove (comp #{:no-inc} first)
+          (mapcat identity dat))
+
+
+  (count (remove (comp #{:no-inc} first)
+                 (mapcat identity dat)))
+
+
+  ;; in progres..
   )
