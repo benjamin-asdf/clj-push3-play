@@ -29,15 +29,30 @@ Preliminary interface:
 
 ## Examples
 
+- usage example with random code: [gen](examples/gen.clj)
 - working on it
-
-
 
 # Ideas / want to do
 
 - explore algs where the variation operator is itself evolved ['metaevolution'](ideas/metaevolution.org).
+  - split 'mutation' and 'world' genomes.
 - explore symbiogenic algorithms.
-- explore open ended problems 
+- explore open ended problems and creativity (G. Chaitins Metabiology but applied).
+- Implement [HDC/VSA](https://www.hd-computing.com/) operators.
+- Figure out a hyper dimensional representation of push code so that the same program can be target of 
+  symbolic and neural / subsymbolic algorithms. 
+  
+  
+
+
+
+  
+  
+
+
+
+
+
 
 
  
