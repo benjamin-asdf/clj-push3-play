@@ -12,31 +12,7 @@
 ;; https://link.springer.com/chapter/10.1007/BFb0056853
 
 
-;; idea:
-;; - label 'interpret' sub blocks with transform function
-;; - combine and go up the hierarchy
-
-;; -------------------------
-;;
-;; In Dawkins fashion, imagine labeling the teeth as 'carnivore' or 'herbivore'.
-;; Label the stomach as 'carnivore' or 'herbivore'. etc.
-;;
-;; The structure of a modular problem is that for example the harmony between
-;; the submodules counts to large degree to the fitness.
-;;
-;; -------------------------
-
-;; string of symbols `B` = { b1, ..., bn }, over an alphabe S where n=k^p
-
-;; represents a hierachical block structure
-;;
-;; k = number of sub-blocks in a block = `block-size`
-;; p = is the number of levels in the hierarchy = `hierarchy-levels`
-;;
-
-;;
-
-
+;; --------------------
 ;; 0 0 = 1
 ;; 1 0 = 0
 ;; 0 1 = 1
@@ -44,13 +20,20 @@
 (defn iff [a b]
   (if (= a b) 1 0))
 
-
 ;;
-;; T(B) =
+;; string of symbols `B` = { b1, ..., bn }, over an alphabet S where n=k^p
+;;
+;; represents a hierachical block structure
+;;
+;; k = number of sub-blocks in a block = `block-size`
+;; p = is the number of levels in the hierarchy = `hierarchy-levels`
 ;;
 (defn blocks [size coll]
   (partition (/ (count coll) size) coll))
 
+;;
+;; T(B) =
+;;
 (defn hierachical-transform
   "
   In effect, calls `transform` with `block-size` elements to 'interpret' 1 level.
@@ -63,9 +46,15 @@
   Example with 'iff' as transform:
 
   (hierachical-transform iff 2 [0 0])
-  1
+  => iff( 0 0 )
+  => 1
+
   (hierachical-transform iff 2 [0 0 1 1])
-  1
+
+  => iff( iff(0 0) iff(1 1) )
+  => iff(   1       1  )
+  =>  1
+
   (hierachical-transform iff 2 [0 0 1 0])
   0
   "
