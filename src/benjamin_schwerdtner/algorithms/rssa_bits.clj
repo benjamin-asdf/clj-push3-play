@@ -183,7 +183,6 @@
   (let [block-size 2
         bit-string-length (long (Math/pow block-size hierachy-levels))
         bit-perm (into [] (rand/shuffle (range bit-string-length)))]
-    #_(comp hierachical-if-and-only-if (partial permute-vec bit-perm))
     {:shuffle-perm bit-perm
      :shuffled-hiff (fn [input-vec]
                       (hierachical-if-and-only-if
