@@ -12,3 +12,39 @@ Clojush, an implementation of Push/PushGP in Clojure that has been used for many
 - Be slighly more data oriented.
 
 
+## Interpreter
+
+Preliminary interface: 
+
+
+``` clojure
+(require '[benjamin-schwerdtner.clj-push3-play.interpreter :as push])
+
+(defn execute [program]
+  (push/execute
+   (push/setup-state)
+   program
+   {:max-executions 250}))
+```
+
+## Examples
+
+- working on it
+
+
+
+# Ideas / want to do
+
+- explore algs where the variation operator is itself evolved ['metaevolution'](ideas/metaevolution.org).
+- explore symbiogenic algorithms.
+- explore open ended problems 
+
+
+ 
+
+
+
+
+
+
+

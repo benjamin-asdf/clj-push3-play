@@ -8,7 +8,6 @@
    [benjamin-schwerdtner.clj-push3-play.mutation.mut :as mut]))
 
 
-
 ;; -----------------------
 
 (defn execute [program]
@@ -103,6 +102,11 @@
            {:fitness (/ out-num (:push/num-executions push-state))
             :push-state push-state})))
 
+
+
+
+
+
 (comment
 
 
@@ -140,7 +144,6 @@
 
   (remove (comp #{:no-inc} first)
           (mapcat identity dat))
-
 
   (count (remove (comp #{:no-inc} first)
                  (mapcat identity dat)))

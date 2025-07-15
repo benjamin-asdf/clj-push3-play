@@ -13,9 +13,6 @@ The schema is supposed to be a kind module (/building block/), parameterized via
 
 But GA's (with recombination) actually don't do better than hill climbing on modular problems [Forrest & Mitchel 1993b],[Goldberg and Horn, 1994][Mitchel et al. 1995].
 
-It seems to me like BBH was a good (first) attempt to explain aspects of ev., to build upon - but to be rejected as-is.
-
-
 Problems:
 
 - Royal Road (RR) functions [Mitchel et. al., 1992, Forrest & Mitchel 1993].
@@ -38,7 +35,7 @@ I.e. Atoms for the random code generator.
 A machine learning algorithm using an evolutionary algorithm *EA*.
 Includes an abstraction of a genome. Usually a bit string or a program (e.g. s-exp).
 
-Then *GP*.
+See *GP*.
 
 * Genetic Programing (GP)
 
@@ -47,7 +44,6 @@ A field in evolutionary algorithms where you evolve computer programs as genomes
 Plush is designed to be a GP genome.
 
 https://en.wikipedia.org/wiki/Genetic_algorithm
-
 
 * Problem Decomposition
 

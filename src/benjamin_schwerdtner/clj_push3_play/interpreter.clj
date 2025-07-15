@@ -1,4 +1,4 @@
-(ns  benjamin-schwerdtner.clj-push3-play.interpreter
+(ns benjamin-schwerdtner.clj-push3-play.interpreter
   (:require
    [random-seed.core :refer [random *rng*]]
    [benjamin-schwerdtner.clj-push3-play.stack.pushstate :as stack]
