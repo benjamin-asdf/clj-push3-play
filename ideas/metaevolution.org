@@ -24,11 +24,14 @@
 * Baldwin and meta evolutionary Baldwin effects:
 
 
-- zeroeth order (no Baldwin Effect): 'genetic determinism', =E= specifies a fixed reaction norm. A program without dynamical operators,
+*** zeroeth order (no Baldwin Effect):
+  'genetic determinism', =E= specifies a fixed reaction norm. A program without dynamical operators,
   a fixed circuit (static).
   I.e. Worm moves away from light, slows down in darkness.
 
-- first order (Classical Baldwin Effect): Allels in =E= with a dynamic reaction norm (reaction norm can be updated on the fly),
+*** first order (Classical Baldwin Effect):
+
+  Allels in =E= with a dynamic reaction norm (reaction norm can be updated on the fly),
   allowing learning in the adaptive domain.
   A program with dynamic operators, a circuit that can change depending on experiences with the environment.
   I.e. Worms makes experiences in the adaptive domain. Some individuals learn to move to light.
@@ -36,7 +39,8 @@
   The adaptation is the capacity to learn. The relevant thing for the individuals is that learning the alternatives is possible.
   (can learn to move or move away from light).
 
-- second order Ruminative Baldwin Effect (Dennett's Popperian Creature):
+*** Second order: Ruminative Baldwin Effect (Dennett's Popperian Creature):
+
   Allels in =E= create an informaton processing system allowing for ruminative cognition, having the ideas die in their stead.
 
   Worm creates a world model during brain development, uses the world model to make decisions,
@@ -45,17 +49,19 @@
 
   The adaptation is an information processing system that allows having ideas.
 
-- transgenerational Baldwin Effect: Adaptations in =E= allow biological signals transgenerationally (epigenetics).
-  Morphogenesis etc. can use information from parents, parent-parents etc. in a dynamic reaction norm.
-  I.e. The worm's parent was starved, learned that environment is harsh;
+*** Transgenerational Baldwin Effect:
 
-  Adapations can make the morphogenesis react with smaller growth (note that since those are adaptations, they are evolved themselves).
+  Adaptations in =E= allow biological signals transgenerationally (epigenetics).
+  Morphogenesis etc. can use information from parents, parent-parents etc. in a dynamic reaction norm.
+
+  I.e. The worm's parent was starved, learned that environment is harsh; Morphogenesis of offspring worm can react with smaller growth.
+
+  This reaction is an adaptation. 
 
   It means that =E= can be adapted to different environments, and the signal for what environment is present can come from epigenetics.
 
   The capacity to learn across generations is the adaptation. The relevant thing is that the signals/context for dynamism
   is not limited to the individual.
-
 
   This is also called *Neo-Lamarckism* in the literature.
 
@@ -63,9 +69,9 @@
   Could be done by associating epigenetic-data for each individual in =E=, or with a lookup of genome snippets to epigenetic data.
   Some form of 'epigenetic register' as part of the genetic algorithm.
 
+*** Third order (meta-evolutionary Baldwin Effect):
 
-
-- third order (meta-evolutionary Baldwin Effect): Mutation operators (allels in =M=) don't need to be static. Mutation operators can take
+  Mutation operators (allels in =M=) don't need to be static. Mutation operators can take
   epigentic signals into account;
 
   Example:
@@ -79,27 +85,22 @@
   Implemenation: =mut= has both genome and epigenetic data as input.
 
 
------------------------
+---
 
-So far I take this as maybe using slightly non standard terminology, but uncontroversial in the sense that any sane biologist should agree.
+I consider this uncontroversial in the sense of being sane and basically straight forward.
 
------------------
-
-Hm, not sure yet about this:
-
+---
 
 - Leap of faith: Allow =M= to also write into the epigenetic data. Allow signals from =mut= (mutation operator) to travel
   transgenerationally (via viruses etc. across gene pools?).
 
-  Equivalent to second order Baldwin effect in =E=; fourth order meta-evolutionary Baldwin Effect:
+  Equivalent to higher order Baldwin effect in =E=; higher order meta-evolutionary Baldwin Effect:
 
   The adaptation is learning in the domain of evolvability?
 
   Either way, allow =M= to read and write epigenetic data makes sense.
 
-
-
----------------------
+---
 
 Dangerously close to Lamarckism? Darwinism never said you can be one step more dynamic (Baldwin).
 In my view, the essential point of Darwinism is causal contingency. I.e. there are no magic leaps in the world. (Dennett's Sky Hooks).
