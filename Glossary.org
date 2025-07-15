@@ -1,0 +1,87 @@
+* Building-Block Hypothesis (BBH)
+
+The conjecture that *GA*'s work by aqcuiring *schemas* [Holland 1975],[Goldberg 1989].
+
+A schema is a substring of a genome with some unspecified bits,
+written like =1**00**1= where ={0,1}= are fixed bits, and =*= is a filler.
+
+The idea is that a schema cuts the volume of the search space.
+And that genomes acquire schemas, which subsequently increase the fitness of the genomes it is part of.
+Similar to Dawkin's rowers in the row boat analogy.
+
+The schema is supposed to be a kind module (/building block/), parameterized via the unspecified bits.
+
+But GA's (with recombination) actually don't do better than hill climbing on modular problems [Forrest & Mitchel 1993b],[Goldberg and Horn, 1994][Mitchel et al. 1995].
+
+It seems to me like BBH was a good (first) attempt to explain aspects of ev., to build upon - but to be rejected as-is.
+
+
+Problems:
+
+- Royal Road (RR) functions [Mitchel et. al., 1992, Forrest & Mitchel 1993].
+- revised Royal Road functions [Holland 1993]
+- concatenated trap functions [Deb & Goldberg 1992]
+
+The critique is that those are [[* Seperable Problem]]s. I.e. you can solve them by solving the sub-problems cummulatively.
+
+* Ephemeral Random Constant (ERC)
+
+Initially a special terminal in genetic programing.
+I guess it now means any constant for creating entities (genomes).
+I.e. Atoms for the random code generator.
+
+- Koza 1992
+- https://www.gene-expression-programming.com/GepBook/Chapter4/Section2/Introduction.htm
+
+* Genetic Algorithm (GA)
+
+A machine learning algorithm using an evolutionary algorithm *EA*.
+Includes an abstraction of a genome. Usually a bit string or a program (e.g. s-exp).
+
+Then *GP*.
+
+* Genetic Programing (GP)
+
+A field in evolutionary algorithms where you evolve computer programs as genomes.
+
+Plush is designed to be a GP genome.
+
+https://en.wikipedia.org/wiki/Genetic_algorithm
+
+
+* Problem Decomposition
+
+R. Watson, G. S. Hornby, J. B. Pollack 2006
+Modeling building-block interdependency
+https://link.springer.com/chapter/10.1007/BFb0056853
+
+Forming soutions by first breaking down a problem into sub-problems.
+
+** Seperable Problem
+
+#+begin_quote
+A problem which can be divided into sub-problems each of which has a fixed optimal solution that is independet of how other sub-problems are solved.
+#+end_quote
+
+
+This is a very strong notion of decomposition.
+
+** Decomposable Problem
+
+More general: A problem that has sub-problems that do not need to be separable.
+I.e the optimal solution to one sub-problem may be different according to the solution of anohter sub-problem.
+
+- A problem has sub-problems that do not need to be sperable,
+- The optimal solution to sub-problem A can be different on the solution of another sub-problem B.
+  In biology: *Epistasis* (locus A has different effect depending on locus B).
+- We say sub-problem A is /dependent/ on B.
+- In the bi-directional case: *interdependent*.
+
+- has identifieable component parts (/modularity/)
+- a system of uniformly related variables wit no modular struture is excluded from the term decomposable
+
+** Hierachical Problem
+
+levels is the same.
+- Solving the overall problem, given solutions to the sub-problems, has the same difficulty as the sub-problems.
+- See Hirachical If-and-only-if *HIFF*, the canonical example of this problem class.
