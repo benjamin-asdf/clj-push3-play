@@ -25,6 +25,14 @@ Preliminary interface:
    (push/setup-state)
    program
    {:max-executions 250}))
+   
+   
+(->
+ (execute '(2 2 exec_y (integer_dup integer_*)))
+ :stacks :push/integer)
+ 
+[2 10000000000]
+
 ```
 
 ## Examples
