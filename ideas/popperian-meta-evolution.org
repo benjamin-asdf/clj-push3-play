@@ -12,10 +12,16 @@ There would be representations /about/ evolutionary paths or adaptive biases som
 Where? On what time scales? No clue. Something something viruses, transposable elements?
 
 It would be an information processing that would have ideas about what to do with a tree of life or something, and having the ideas die, i.e.
-there would be critisim based on something. 
+there would be critisim based on something.
 
 -------------------
 
 This would map in my mind onto what is said about *natures disposition to beauty*.
 
 Is this actually different from /third order (meta-evolutionary Baldwin Effect)/? Not sure.
+
+
+------------
+
+Either way, implementation wise there is no reason to not make the mutation operators arbitrary complicted. 
+
