@@ -13,10 +13,7 @@
 
 
 ;; --------------------
-;; 0 0 = 1
-;; 1 0 = 0
-;; 0 1 = 1
-;; 1 1 = 1
+
 (defn iff [a b]
   (if (= a b) 1 0))
 
@@ -175,9 +172,9 @@
 
 
 (defn permute-vec
-  "Return a permuted vector by `perm`
-  'shuffle-indices'.
-  ."
+  "Return a permuted vector by `perm`.
+
+  'shuffle-indices'."
   [perm v]
   (mapv #(nth v %) perm))
 
