@@ -23,5 +23,5 @@ Is this actually different from /third order (meta-evolutionary Baldwin Effect)/
 
 ------------
 
-Either way, implementation wise there is no reason to not make the mutation operators arbitrary complicted. 
+Either way, implementation vise there is no reason to not make the mutation operators arbitrary complicted. 
 
