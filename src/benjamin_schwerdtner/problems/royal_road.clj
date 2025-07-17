@@ -19,7 +19,7 @@
   The idea is that a search process exploiting modularity can
   find sub solutions to the problem.
 
-  count variables for example 64, then there are 8 blocks.
+  Count variables: for example 64, then there are 8 blocks.
   "
   [variables]
   (let [
@@ -27,5 +27,5 @@
         blocks (partition-all (Math/sqrt (count variables)) variables)
         ;; each block has a separate fitness, given by f1
         ;; f1 = all-one?
-        all-one (fn [vars] (if (every? #{1} vars) 1 0))]
-    (apply + (map all-one blocks))))
+        all-one? (fn [vars] (if (every? #{1} vars) 1 0))]
+    (apply + (map all-one? blocks))))
