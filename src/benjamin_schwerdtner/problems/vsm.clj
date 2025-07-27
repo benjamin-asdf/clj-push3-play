@@ -75,3 +75,10 @@
   ;;  [1 1 1 1 1 5 5 5 5 5]
   ;;  [1 1 1 1 1 5 5 5 5 5]]
   )
+
+(def problem-params
+  ;; N
+  {:variable-count 400
+   :k 20
+   :weight-strong 400
+   :weight-weak 1})

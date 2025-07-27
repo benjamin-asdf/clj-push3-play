@@ -1,4 +1,5 @@
-(ns benjamin-schwerdtner.clj-push3-play.configuration.config)
+(ns benjamin-schwerdtner.clj-push3-play.configuration.config
+  (:require [clojure.edn :as edn]))
 
 (defn defaults []
   {:parameters
@@ -15,3 +16,7 @@
    ;; :intructions []
    ;; :types [:push/float]
    })
+
+(def program-config
+  (memoize (fn []
+             (edn/read-string (slurp "config.edn")))))

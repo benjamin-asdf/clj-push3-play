@@ -27,5 +27,5 @@
         blocks (partition-all (Math/sqrt (count variables)) variables)
         ;; each block has a separate fitness, given by f1
         ;; f1 = all-one?
-        all-one? (fn [vars] (if (every? #{1} vars) 1 0))]
+        all-one? (fn [vars] (reduce bit-and vars))]
     (apply + (map all-one? blocks))))

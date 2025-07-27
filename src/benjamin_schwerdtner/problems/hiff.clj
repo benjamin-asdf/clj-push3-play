@@ -15,7 +15,9 @@
 ;; --------------------
 
 (defn iff [a b]
-  (if (= a b) 1 0))
+  ;; (if (= a b) 1 0)
+  (bit-and a b))
+
 
 ;;
 ;; string of symbols `B` = { b1, ..., bn }, over an alphabet S where n=k^p
