@@ -1,7 +1,7 @@
 (ns benjamin-schwerdtner.clj-push3-play.arc.grid-impl
   (:require
    [benjamin-schwerdtner.clj-push3-play.prot :refer
-    [PushValue m-typeof-item]]
+    [with-push-type-meta]]
    [libpython-clj2.require :refer [require-python]]
    [libpython-clj2.python :refer [py. py..] :as py]))
 
@@ -68,11 +68,8 @@
 (defn color-frequencies
   "Return a map of color -> count for all colors in the grid"
   [grid]
-  (let [flat-grid (py.. grid flatten)
-        unique-colors (py.. (torch/unique flat-grid) tolist)]
-    (into {}
-          (for [color unique-colors]
-            [color (count-color grid color)]))))
+  (let [flat-grid (into [] (py.. grid flatten tolist))]
+    (frequencies flat-grid)))
 
 (defn max-color
   "Return the color that appears most frequently in the grid"
@@ -174,6 +171,9 @@
 ;; In version 1: kernel is binary
 ;;
 
+(defn with-gene-meta [o]
+  (with-push-type-meta o :push/ca-rule))
+
 (defn rand-gene
   "
   Returns a random CA rule gene tensor of the following form:
@@ -190,19 +190,24 @@
 
   "
   ([]
-   (torch/cat
-    [;; 0-8
-     (torch/rand :size [(* 3 3)])
-     ;; 9,10,11
-     (torch/randint :size [(count [9 10 11])] :low 0 :high 8 :dtype torch/float)
-     ;; 12
-     ;; --
-     ;; 3x3 = 9 is max input
-     ;; if kernel weights are within range [0..1].
-     ;; --
-     ;; Allow 10 for disabling the rule.
-     (torch/randint :size [1] :low 0 :high 10 :dtype torch/float)]))
-  ([num-genes] (torch/stack (vec (repeatedly num-genes rand-gene)))))
+   (with-gene-meta
+     (torch/cat
+      [ ;; 0-8
+       (torch/rand :size [(* 3 3)])
+       ;; 9,10,11
+       (torch/randint :size [(count [9 10 11])] :low 0 :high 8 :dtype torch/float)
+       ;; 12
+       ;; --
+       ;; 3x3 = 9 is max input
+       ;; if kernel weights are within range [0..1].
+       ;; --
+       ;; Allow 10 for disabling the rule.
+       (torch/randint :size [1] :low 0 :high 10 :dtype torch/float)])))
+  ([num-genes]
+   (with-gene-meta (torch/stack (vec (repeatedly num-genes rand-gene))))))
+
+(comment
+  (meta (torch/Tensor [1])))
 
 (defn kernel [rule]
   (->
@@ -222,9 +227,11 @@
                   (torch/reshape [-1 1]))})
 
 (defn write-rule [{:keys [kernel mask-color new-color old-color threshold]}]
-  (torch/cat
-   [(py.. (torch/tensor kernel :dtype torch/float) (view 9))
-    (torch/tensor [mask-color old-color new-color threshold] :dtype torch/float)]))
+  (->
+   (torch/cat
+    [(py.. (torch/tensor kernel :dtype torch/float) (view 9))
+     (torch/tensor [mask-color old-color new-color threshold] :dtype torch/float)])
+   (with-gene-meta)))
 
 (comment
   (torch/tensor (torch/tensor 0))
@@ -621,3 +628,6 @@
 ;; 3. 'inner' / 'outer' detector
 ;; 4.
 ;;
+
+(comment
+  (color-frequencies (grid [[0 0] [1 0]])))

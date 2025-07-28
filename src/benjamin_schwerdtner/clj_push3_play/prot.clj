@@ -23,20 +23,39 @@
   clojure.lang.Ratio
   (m-typeof-item [_this] :push/float)
   ;; -------------------
-  java.util.List
+  clojure.lang.IPersistentList
   (m-typeof-item [_this] :push/code)
+  ;; -------------------
   clojure.lang.Symbol
   (m-typeof-item [_this] :push/name)
   java.lang.Character
   (m-typeof-item [_this] :push/char)
   clojure.lang.Keyword
   (m-typeof-item [_this] :push/clj-object)
+  clojure.lang.IPersistentVector
+  (m-typeof-item [this] [:push/vector (m-typeof-item (first this))])
   Object
   (m-typeof-item [this]
     (cond
+      (:push/type (meta this))
+      (:push/type (meta this))
+
       (= (type this) :pyobject)
       :push/arc-grid
+
+      (list? this)
+      :push/code
+
       :else
       :push/clj-object))
+
   nil
   (m-typeof-item [_this] :push/clj-object))
+
+(defn with-push-type-meta
+  [o push-type]
+  (with-meta o (merge (meta o) {:push/type push-type})))
+
+(comment
+  (m-typeof-item [1])
+  (m-typeof-item '()))

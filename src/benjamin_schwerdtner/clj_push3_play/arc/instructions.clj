@@ -158,7 +158,7 @@
 
 (register-instruction
  {:sym-name 'grid_ca_apply_rule
-  :in [:push/grid :push/ca_rule]
+  :in [:push/grid :push/ca-rule]
   :out :push/grid
   :f (fn [_ g rule] (grid/ca-apply-rule g rule))})
 
@@ -211,7 +211,8 @@
  {:sym-name 'grid_color_frequencies
   :in [:push/grid]
   :out :push/code
-  :f (fn [_ g] (grid/color-frequencies g))})
+  :f (fn [_ g]
+       (map vec (grid/color-frequencies g)))})
 
 (register-instruction
  {:sym-name 'grid_max_color

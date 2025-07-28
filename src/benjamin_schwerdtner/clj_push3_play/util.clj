@@ -80,7 +80,6 @@
     (not-lazy thing)
     (list thing)))
 
-
 (defn round-to-n-decimal-places
   "If a number, rounds float f to n decimal places."
   [f n]
@@ -276,3 +275,6 @@
     :else (some (fn [smaller-tree]
                   (containing-subtree smaller-tree subtree))
                 tree)))
+
+(comment
+  (ensure-list [1 2 3]))
