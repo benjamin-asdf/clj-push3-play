@@ -32,6 +32,11 @@
   clojure.lang.Keyword
   (m-typeof-item [_this] :push/clj-object)
   Object
-  (m-typeof-item [_this] :push/clj-object)
+  (m-typeof-item [this]
+    (cond
+      (= (type this) :pyobject)
+      :push/arc-grid
+      :else
+      :push/clj-object))
   nil
   (m-typeof-item [_this] :push/clj-object))
