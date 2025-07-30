@@ -13,6 +13,20 @@
   :f (fn [_ width height] (grid/zeroes [width height]))})
 
 (register-instruction
+ {:sym-name 'grid_zeroes_square
+  :in [:push/integer]
+  :out :push/grid
+  :f (fn [_ size] (grid/zeroes [size size]))})
+
+(register-instruction
+ {:sym-name 'grid_new
+  :in [:push/integer :push/integer :push/integer]
+  :out :push/grid
+  :f (fn [_ width height color]
+       (grid/fill (grid/zeroes [height width]) color))
+  :doc "Create a new grid with the specified width, height, and fill color."})
+
+(register-instruction
  {:sym-name 'grid_fill
   :in [:push/grid :push/integer]
   :out :push/grid
@@ -157,10 +171,68 @@
   :f (fn [_ g] (grid/all-symmetries g))})
 
 (register-instruction
+ {:sym-name 'grid_resize_center
+  :in [:push/grid :push/integer :push/integer]
+  :out :push/grid
+  :f (fn [_ g new-height new-width]
+       (grid/resize-grid-center g new-height new-width))})
+
+(register-instruction
+ {:sym-name 'grid_resize_center_bg
+  :in [:push/grid :push/integer :push/integer :push/integer]
+  :out :push/grid
+  :f (fn [_ g new-height new-width bg-color]
+       (grid/resize-grid-center g new-height new-width bg-color))})
+
+(register-instruction
+ {:sym-name 'grid_resize_top_left
+  :in [:push/grid :push/integer :push/integer]
+  :out :push/grid
+  :f (fn [_ g new-height new-width]
+       (grid/resize-grid-top-left g new-height new-width))})
+
+(register-instruction
+ {:sym-name 'grid_resize_top_left_bg
+  :in [:push/grid :push/integer :push/integer :push/integer]
+  :out :push/grid
+  :f (fn [_ g new-height new-width bg-color]
+       (grid/resize-grid-top-left g new-height new-width bg-color))})
+
+(register-instruction
+  {:in
+   [[:push/vector :push/integer]
+    [:push/vector :push/integer]
+    [:push/vector :push/integer]
+
+    :push/integer :push/integer
+    :push/integer :push/float]
+   :f (fn [_
+           kernel-c
+           kernel-b
+           kernel-a
+
+           mask-color
+           new-color
+           old-color
+           threshold]
+        (when (every? (comp #(= % 3) count)
+                      [kernel-a kernel-b kernel-c])
+          (grid/write-rule {:kernel [kernel-a kernel-b kernel-c]
+                            :mask-color mask-color
+                            :new-color new-color
+                            :old-color old-color
+                            :threshold threshold})))
+   :out :push/ca-rule
+   :sym-name 'grid_make_ca})
+
+(register-instruction
  {:sym-name 'grid_ca_apply_rule
   :in [:push/grid :push/ca-rule]
   :out :push/grid
-  :f (fn [_ g rule] (grid/ca-apply-rule g rule))})
+  :f (fn [_ g rule]
+       (def g g )
+       (def rule rule)
+       (grid/ca-apply-rule g rule))})
 
 (register-instruction
  {:sym-name 'grid_reduce_ca
@@ -207,18 +279,47 @@
   :out :push/integer
   :f (fn [_ g color] (grid/count-color g color))})
 
+;; (register-instruction
+;;  {:sym-name 'grid_repeat_diagonal
+;;   :in [:push/grid :push/integer :push/integer]
+;;   :out :push/grid
+;;   :f (fn [_ g window-size num-reps]
+;;        (grid/repeat-pattern-diagonal g window-size num-reps))
+;;   :doc "Repeat a pattern from top-left corner diagonally. Takes grid, window size, and number of repetitions."})
+
+;; (register-instruction
+;;  {:sym-name 'grid_repeat_horizontal
+;;   :in [:push/grid :push/integer]
+;;   :out :push/grid
+;;   :f (fn [_ g num-reps]
+;;        (grid/repeat-pattern-horizontal g num-reps))
+;;   :doc "Repeat the 3x3 pattern horizontally n times."})
+
+(register-instruction
+ {:sym-name 'grid_count_non_zero
+  :in [:push/grid]
+  :out :push/integer
+  :f (fn [_ g] (grid/grid-count-non-zero g))
+  :doc "Count the number of non-zero cells in the grid."})
+
 (register-instruction
  {:sym-name 'grid_color_frequencies
   :in [:push/grid]
-  :out :push/code
+  :out [:push/vector :push/integer]
   :f (fn [_ g]
-       (map vec (grid/color-frequencies g)))})
+       (grid/color-frequencies g))})
 
 (register-instruction
  {:sym-name 'grid_max_color
   :in [:push/grid]
   :out :push/integer
   :f (fn [_ g] (grid/max-color g))})
+
+(register-instruction
+ {:sym-name 'grid_max_color_nonzero
+  :in [:push/grid]
+  :out :push/integer
+  :f (fn [_ g] (grid/max-color-non-zero g))})
 
 (register-instruction
  {:sym-name 'grid_positions_of_color
@@ -233,6 +334,22 @@
   :f (fn [_ g] (grid/positions-of-max-color g))})
 
 (register-instruction
+ {:sym-name 'grid_max_pool
+  :in [:push/grid]
+  :out :push/grid
+  :f (fn [_ g]
+       (grid/max-pool g))})
+
+;; ----------------------------
+
+(register-instruction
+ {:sym-name 'grid_pack
+  :in [:push/grid :push/grid :push/integer]
+  :out :push/grid
+  :f (fn [_ g p n]
+       (grid/pack g p n))})
+
+(register-instruction
  {:sym-name 'color_gensym
   :in []
   :out :state
@@ -243,3 +360,20 @@
          (-> state
              (assoc ::color-gensym-counter i)
              (stack/push :push/integer i))))})
+
+;; --------------------
+
+(doseq [[sym-name impl]
+        [['grid_stackdepth impl/stack-depth-impl]
+         ['grid_pop impl/popper]
+         ['grid_dup impl/dupper]
+         ['grid_flush impl/flusher]
+         ['grid_shove impl/shover]
+         ['grid_yank impl/yanker]
+         ['grid_yankdup impl/yankdupper]
+         ['grid_rot impl/rotater]
+         ['grid_swap impl/swapper]
+         ['grid_define impl/definer]]]
+  (register-instruction
+   (impl {:sym-name sym-name
+          :push-type :push/grid})))

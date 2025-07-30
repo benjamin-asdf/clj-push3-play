@@ -140,9 +140,13 @@ Presumably for redefinition."
      :push/integer []
      :push/name []
      :push/string []
-     :push/arc-grid []
-     ;; :push/
-     }}))
+     :push/grid []
+     :push/ca-rule []
+     [:push/vector :push/string] []
+     [:push/vector :push/boolean] []
+     [:push/vector :push/integer] []
+     [:push/vector :push/float] []
+     [:push/vector :push/char] []}}))
 
 
 

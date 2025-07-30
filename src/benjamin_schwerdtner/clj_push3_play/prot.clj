@@ -41,7 +41,7 @@
       (:push/type (meta this))
 
       (= (type this) :pyobject)
-      :push/arc-grid
+      :push/grid
 
       (list? this)
       :push/code

@@ -19,9 +19,8 @@
   [state {:as instr :push.instruction/keys [in out f]}]
   (let [{:push.instruction/keys [in out f]} instr
         in-vals-info (reduce (fn [[s vs] t]
-                               (let [stack (-> s
-                                               :stacks
-                                               t)]
+                               (let [stack
+                                     (get-in s [:stacks t])]
                                  (if (empty? stack)
                                    (ensure-reduced ::empty)
                                    [(update-in s [:stacks t] pop)

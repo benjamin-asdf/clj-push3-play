@@ -6,7 +6,33 @@
    [libpython-clj2.python :refer [py. py..] :as py]))
 
 (require-python '[torch :as torch]
-                '[torch.nn.functional :as F])
+                '[torch.nn.functional :as F]
+                '[builtins :refer [slice]])
+
+(defn get-subgrid
+  "Extract a subgrid from the given grid starting at (x, y) with given width and height"
+  [grid x y width height]
+  (py/get-item grid [(slice y (+ y height)) (slice x (+ x width))]))
+
+(defn count-non-zero
+  "Count the number of non-zero cells in a grid"
+  [grid]
+  (py.. (torch/ne grid 0) (sum) (item)))
+
+(defn set-subgrid!
+  "Set a subgrid in the target grid at position (x, y)"
+  [target-grid subgrid x y]
+  (let [sub-h (py.. subgrid (size 0))
+        sub-w (py.. subgrid (size 1))]
+    (py/set-item! target-grid
+                  [(slice y (+ y sub-h)) (slice x (+ x sub-w))]
+                  subgrid)
+    target-grid))
+
+(defn grid-count-non-zero
+  "Count non-zero cells in the grid"
+  [grid]
+  (count-non-zero grid))
 
 (def colors (into [] (range 10)))
 
@@ -21,7 +47,7 @@
 (defonce color-gensym (make-color-gensym))
 
 (defn zeroes [dims]
-  (torch/tensor dims))
+  (torch/zeros dims :dtype torch/float))
 
 (defn grid [values
             ;; {:keys [device]}
@@ -69,15 +95,18 @@
   "Return a map of color -> count for all colors in the grid"
   [grid]
   (let [flat-grid (into [] (py.. grid flatten tolist))]
-    (frequencies flat-grid)))
+    (vec (sort-by second (fn [a b] (compare b a)) (map vec (frequencies flat-grid))))))
 
 (defn max-color
   "Return the color that appears most frequently in the grid"
   [grid]
-  (let [freqs (color-frequencies grid)]
-    (if (empty? freqs)
-      0
-      (key (apply max-key val freqs)))))
+  (ffirst (color-frequencies grid)))
+
+(defn max-color-non-zero [grid]
+  (ffirst
+   (remove
+    (comp zero? first)
+    (color-frequencies grid))))
 
 (defn positions-of-color
   "Return all [x y] positions where the specified color appears"
@@ -192,7 +221,7 @@
   ([]
    (with-gene-meta
      (torch/cat
-      [ ;; 0-8
+      [;; 0-8
        (torch/rand :size [(* 3 3)])
        ;; 9,10,11
        (torch/randint :size [(count [9 10 11])] :low 0 :high 8 :dtype torch/float)
@@ -212,19 +241,15 @@
 (defn kernel [rule]
   (->
    (torch/narrow rule -1 0 9)
-   (torch/reshape [-1 3 3])))
+   (torch/reshape [3 3])))
 
 (defn read-rule
   [rule]
   {:kernel (kernel rule)
-   :mask-color (-> (torch/narrow rule -1 9 1)
-                   (torch/reshape [-1 1]))
-   :new-color (-> (torch/narrow rule -1 11 1)
-                  (torch/reshape [-1 1]))
-   :old-color (-> (torch/narrow rule -1 10 1)
-                  (torch/reshape [-1 1]))
-   :threshold (-> (torch/narrow rule -1 12 1)
-                  (torch/reshape [-1 1]))})
+   :mask-color (torch/narrow rule -1 9 1)
+   :new-color (torch/narrow rule -1 11 1)
+   :old-color (torch/narrow rule -1 10 1)
+   :threshold (torch/narrow rule -1 12 1)})
 
 (defn write-rule [{:keys [kernel mask-color new-color old-color threshold]}]
   (->
@@ -244,6 +269,17 @@
     :new-color 0
     :old-color (torch/tensor 0)
     :threshold 2}))
+
+(defn conv
+  ([grid kernel] (conv grid kernel 1))
+  ([grid kernel padding]
+   (py..
+    (F/conv2d (py.. grid (unsqueeze 0) (unsqueeze 0))
+              (py.. kernel (unsqueeze 0) (unsqueeze 0))
+              :padding
+              padding)
+    (squeeze 0)
+    (squeeze 0))))
 
 (defn ca-apply-rule
   "Returns a grid with CA rule (gene) applied.
@@ -275,15 +311,25 @@
         (read-rule rule-gene)
         grid-masked (py.. (torch/eq grid mask-color)
                           (type torch/float32))
-        activations (py.. (F/conv2d (py.. grid-masked
-                                          (unsqueeze 0)
-                                          (unsqueeze 0))
-                                    (py.. kernel (unsqueeze 0))
-                                    :padding
-                                    1)
+        activations (py.. (F/conv2d
+                           (py.. grid-masked (unsqueeze 0) (unsqueeze 0))
+                           (py.. kernel (unsqueeze 0) (unsqueeze 0))
+                           :padding
+                           1)
                           (squeeze 0)
                           (squeeze 0))]
-    ;; [grid grid-masked activations threshold (torch/ge activations threshold) old-color (torch/eq grid old-color)]
+    [grid
+     grid-masked
+     activations
+     threshold
+
+     (torch/ge
+      activations threshold)
+
+     old-color
+     (torch/eq grid old-color)]
+
+
     (torch/where (torch/mul (torch/ge activations threshold)
                             (torch/eq grid old-color))
                  new-color
@@ -350,29 +396,22 @@
     (let [current-color (py.. (py/get-item grid [x y]) item)]
       (if (= current-color color)
         grid
-        (let
-         [marker-color ((color-gensym))
-             ;; put a marker 'seed' at the position
-          grid
-          (torch/index_put grid
-                           [(torch/tensor [x]) (torch/tensor [y])]
-                           (torch/tensor marker-color :dtype torch/float))]
-          (->
-           grid
-             ;; fill marker color growing from seed
-           (reduce-ca
-            (write-rule
-             {:kernel
-              [[0 1 0]
-               [1 0 1]
-               [0 1 0]]
-              :mask-color marker-color
-              :new-color marker-color
-              :old-color current-color
-
-              :threshold 1}))
-             ;; subst marker to target color
-           (color-swap marker-color color)))))))
+        (let [marker-color (color-gensym)
+              ;; put a marker 'seed' at the position
+              grid (torch/index_put
+                    grid
+                    [(torch/tensor [x]) (torch/tensor [y])]
+                    (torch/tensor marker-color :dtype torch/float))]
+          (-> grid
+              ;; fill marker color growing from seed
+              (reduce-ca (write-rule {:kernel [[0 1 0] [1 0 1]
+                                               [0 1 0]]
+                                      :mask-color marker-color
+                                      :new-color marker-color
+                                      :old-color current-color
+                                      :threshold 1}))
+              ;; subst marker to target color
+              (color-swap marker-color color)))))))
 
 (comment
 
@@ -618,6 +657,154 @@
   (concat (all-rotations grid)
           (all-rotations (flip-horizontal grid))))
 
+(defn resize-grid-center
+  "Resize a grid to new dimensions, placing the original grid in the center.
+   Fills with background-color (default 0) if new size is larger.
+   Crops if new size is smaller."
+  ([grid new-height new-width]
+   (resize-grid-center grid new-height new-width 0))
+  ([grid new-height new-width background-color]
+   (let [[old-height old-width] (shape grid)
+         ;; Calculate offsets to center the old grid in the new grid
+         y-offset (quot (- new-height old-height) 2)
+         x-offset (quot (- new-width old-width) 2)
+         ;; Create new grid filled with background color
+         new-grid (torch/full [new-height new-width] background-color :dtype torch/float)]
+     (cond
+       ;; If new size is smaller in both dimensions, crop from center
+       (and (<= new-height old-height) (<= new-width old-width))
+       (let [y-start (quot (- old-height new-height) 2)
+             x-start (quot (- old-width new-width) 2)]
+         (-> grid
+             (torch/narrow 0 y-start new-height)
+             (torch/narrow 1 x-start new-width)
+             (py.. clone)))
+
+       ;; If new size is larger in both dimensions, place in center
+       (and (>= new-height old-height) (>= new-width old-width))
+       (do
+         (py.. new-grid
+               (narrow 0 y-offset old-height)
+               (narrow 1 x-offset old-width)
+               (copy_ grid))
+         new-grid)
+
+       ;; Mixed case: one dimension larger, one smaller
+       :else
+       (let [;; Determine source region to copy
+             src-y-start (if (< new-height old-height)
+                           (quot (- old-height new-height) 2)
+                           0)
+             src-x-start (if (< new-width old-width)
+                           (quot (- old-width new-width) 2)
+                           0)
+             src-height (min old-height new-height)
+             src-width (min old-width new-width)
+             ;; Determine destination region
+             dst-y-start (max 0 y-offset)
+             dst-x-start (max 0 x-offset)
+             ;; Get source slice
+             src-slice (-> grid
+                           (torch/narrow 0 src-y-start src-height)
+                           (torch/narrow 1 src-x-start src-width))]
+         (py.. new-grid
+               (narrow 0 dst-y-start src-height)
+               (narrow 1 dst-x-start src-width)
+               (copy_ src-slice))
+         new-grid)))))
+
+(defn resize-grid-top-left
+  "Resize a grid to new dimensions, placing the original grid at the top-left.
+   Fills with background-color (default 0) if new size is larger.
+   Crops from bottom-right if new size is smaller."
+  ([grid new-height new-width]
+   (resize-grid-top-left grid new-height new-width 0))
+  ([grid new-height new-width background-color]
+   (let [[old-height old-width] (shape grid)]
+     (cond
+       ;; If new size is smaller in both dimensions, crop from top-left
+       (and (<= new-height old-height) (<= new-width old-width))
+       (-> grid
+           (torch/narrow 0 0 new-height)
+           (torch/narrow 1 0 new-width)
+           (py.. clone))
+
+       ;; If new size is larger in both dimensions, place at top-left
+       (and (>= new-height old-height) (>= new-width old-width))
+       (let [new-grid (torch/full [new-height new-width] background-color :dtype torch/float)]
+         (py.. new-grid
+               (narrow 0 0 old-height)
+               (narrow 1 0 old-width)
+               (copy_ grid))
+         new-grid)
+
+       ;; Mixed case: one dimension larger, one smaller
+       :else
+       (let [copy-height (min old-height new-height)
+             copy-width (min old-width new-width)
+             new-grid (torch/full [new-height new-width] background-color :dtype torch/float)]
+         (let [src-slice (-> grid
+                             (torch/narrow 0 0 copy-height)
+                             (torch/narrow 1 0 copy-width))]
+           (py.. new-grid
+                 (narrow 0 0 copy-height)
+                 (narrow 1 0 copy-width)
+                 (copy_ src-slice)))
+         new-grid)))))
+
+;; -------------------------------------------------------
+
+(defn max-pool
+  ([grid] (max-pool grid [3 3] 3))
+  ([grid kernel-size stride]
+   (F/max_pool2d (py.. grid (unsqueeze 0))
+                 :kernel_size kernel-size
+                 :stride stride)))
+
+(defn pack
+  ;;
+  ;; +-----------------+
+  ;; | X  X  X ...     |
+  ;; | X               |
+  ;; |                 |
+  ;; +-----------------+
+  ;;
+  "Pack pattern into grid from top left to bottom right
+  `n` times."
+  [grid pattern n]
+  (let [patt-height (py.. pattern (size 0))
+        patt-width (py.. pattern (size 1))
+        grid-height (py.. grid (size 0))
+        grid-width (py.. grid (size 1))
+        ;; Calculate how many patterns can fit in each dimension
+        patterns-per-row (quot grid-width patt-width)
+        patterns-per-col (quot grid-height patt-height)
+        total-positions (* patterns-per-row patterns-per-col)]
+    (if (= n 0)
+      grid
+      (let [;; Clone grid to avoid mutation
+            result-grid (py.. grid clone)
+            ;; Pack the requested number of patterns, up to the available space
+            patterns-to-pack (min n total-positions)]
+        (loop [i 0]
+          (if (< i patterns-to-pack)
+            (let [;; Calculate position in the grid
+                  row (quot i patterns-per-row)
+                  col (rem i patterns-per-row)
+                  y (* row patt-height)
+                  x (* col patt-width)]
+              (set-subgrid! result-grid pattern x y)
+              (recur (inc i)))
+            result-grid))))))
+
+
+(defn clj
+  [g]
+  (mapv
+   (comp vec #(py.. % tolist))
+   (py.. g (to :dtype torch/int))))
+
+
 ;; ==================
 
 ;; perception primitives:
@@ -630,4 +817,123 @@
 ;;
 
 (comment
-  (color-frequencies (grid [[0 0] [1 0]])))
+  (def g (grid
+          [[0., 0., 8., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
+            0., 0., 0.],
+           [0., 8., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
+            0., 0., 0.],
+           [0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
+            0., 0., 0.],
+           [0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
+            0., 0., 0.],
+           [0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
+            0., 0., 0.],
+           [0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
+            0., 0., 0.],
+           [0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
+            0., 0., 0.],
+           [0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
+            0., 0., 0.],
+           [0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
+            0., 0., 0.],
+           [0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
+            0., 0., 0.],
+           [0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
+            0., 0., 0.],
+           [0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
+            0., 0., 0.],
+           [0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
+            0., 0., 0.],
+           [0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
+            0., 0., 0.],
+           [0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
+            0., 0., 0.],
+           [0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
+            0., 0., 0.],
+           [0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
+            0., 0., 0.],
+           [0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
+            0., 0., 0.],
+           [0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
+            0., 0., 0.],
+           [0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
+            0., 0., 0.],
+           [0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
+            0., 0., 0.]]))
+
+  (max-pool g)
+  (py/import-module "torch.nn.functional")
+  (color-frequencies (grid [[0 0] [1 0]]))
+
+  (write-rule
+   {:kernel
+    [[1 0 0 0 0 0]]
+    :mask-color 8
+    :new-color 8
+    :old-color 8
+    :threshold 1})
+
+  (conv g (torch/tensor [[1.0 0 0 0 0 0 0]]) 0)
+
+  (torch/roll g 3)
+
+  (torch/roll g 3)
+
+  (count [0., 0., 0., 0., 0., 8., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
+          0., 0., 0.])
+
+  (/ 21 3)
+
+
+  (pack
+   (torch/tensor
+    [[0 0 0 0 0 0]
+     [0 0 0 0 0 0]
+     [0 0 0 0 0 0]
+     [0 0 0 0 0 0]
+     [0 0 0 0 0 0]
+     [0 0 0 0 0 0]])
+   (torch/tensor
+    [[1 2 3]
+     [1 2 3]
+     [1 2 3]])
+   2)
+
+  (py.. g (size 0))
+  (py.. g (size 1))
+
+  (F/conv2d
+   (py.. g (unsqueeze 0) (unsqueeze 0))
+   (torch/tensor
+    [[[[0 0 0 0]
+       [0 0 0 0]
+       [0 0 0 0]
+       [1 0 0 0]]]]
+    :dtype
+    torch/float)
+   :padding
+   3)
+
+  (F/conv2d
+   (py.. g (unsqueeze 0) (unsqueeze 0))
+   (torch/tensor
+    [[[[1 0 0 0]]]]
+    :dtype
+    torch/float)
+   :padding
+   [0 3])
+
+  (F/conv2d
+   (py.. g (unsqueeze 0) (unsqueeze 0))
+   (torch/tensor [[[[0 1]]]] :dtype torch/float)
+   :padding [0 1]
+   :stride 1)
+
+
+  (max-color g)
+
+
+
+
+
+  )
