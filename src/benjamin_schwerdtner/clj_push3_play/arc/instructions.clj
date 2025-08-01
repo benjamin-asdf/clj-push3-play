@@ -340,6 +340,8 @@
   :f (fn [_ g]
        (grid/max-pool g))})
 
+
+
 ;; ----------------------------
 
 (register-instruction
@@ -348,6 +350,24 @@
   :out :push/grid
   :f (fn [_ g p n]
        (grid/pack g p n))})
+
+(register-instruction
+ {:sym-name 'grid_fill_with_pattern
+  :in [:push/grid :push/grid :push/grid]
+  :out :push/grid
+  :f (fn [_ g p mp]
+       (grid/fill-with-pattern g p mp))})
+
+(register-instruction
+ {:sym-name 'grid_filter_color
+  :in [:push/grid :push/integer]
+  :out :push/grid
+  :f (fn [_ g c]
+       (grid/filter-color g c))})
+
+
+
+;; --------------------------------------------
 
 (register-instruction
  {:sym-name 'color_gensym

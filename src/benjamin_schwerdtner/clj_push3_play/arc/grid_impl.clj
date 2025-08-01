@@ -75,7 +75,7 @@
 (defn get-cell
   "Get the value at position [x y] in the grid"
   [grid x y]
-  (py.. grid (item [x y]) item))
+  (py.. (py/get-item grid [y x]) item))
 
 (defn set-cell
   "Set the value at position [x y] in the grid to color"
@@ -119,6 +119,12 @@
   "Return all [x y] positions where the most frequent color appears"
   [grid]
   (positions-of-color grid (max-color grid)))
+
+(defn filter-color [grid color]
+  (torch/where
+   (torch/eq grid color)
+   grid
+   0))
 
 (defn rows [grid]
   (vec grid))
@@ -328,7 +334,6 @@
 
      old-color
      (torch/eq grid old-color)]
-
 
     (torch/where (torch/mul (torch/ge activations threshold)
                             (torch/eq grid old-color))
@@ -797,13 +802,108 @@
               (recur (inc i)))
             result-grid))))))
 
+ ;; ==================== Pattern Fill Operations ====================
+;;
+;; These functions support ARC tasks that involve filling larger grids
+;; with patterns according to meta-patterns.
+;;
+;; Core function:
+;; - fill-with-pattern: Fill a grid with a pattern based on a meta-pattern
+;;
+;; Example usage:
+;; (def pattern (grid [[1 2] [3 4]]))
+;; (def meta (grid [[1 0] [0 1]]))  ; Place at top-left and bottom-right
+;; (def result (fill-with-pattern (zeroes [4 4]) pattern meta))
+;; => [[1 2 0 0] [3 4 0 0] [0 0 1 2] [0 0 3 4]]
+;;
+
+(defn fill-with-pattern
+  "Fill a grid with a pattern according to a meta-pattern.
+
+  Args:
+    base-grid: The base grid to fill (determines output dimensions)
+    pattern: The subgrid pattern to be inserted (e.g. 3x3)
+    meta-pattern: A low-dimensional grid (e.g. 3x3) where non-zero values
+                  indicate where to place the pattern in the output grid
+
+  Returns:
+    The filled grid (cloned from base-grid)
+    Returns base-grid unchanged if:
+    - Output dimensions are not divisible by meta-pattern dimensions
+    - Pattern is too large to fit in the subgrid regions
+    - Any dimension is zero
+
+  Example:
+    (fill-with-pattern
+      (zeroes [4 4])       ; 4x4 base grid of zeros
+      (grid [[1 2] [3 4]]) ; 2x2 pattern
+      (grid [[1 0] [0 1]]) ; 2x2 meta-pattern)
+    ; Places the pattern at top-left and bottom-right 2x2 regions"
+  [base-grid pattern meta-pattern]
+  (let [output-grid (py.. base-grid clone)
+        [out-height out-width] (shape base-grid)
+        [pattern-height pattern-width] (shape pattern)
+        [meta-height meta-width] (shape meta-pattern)]
+    ;; Validate dimensions
+    (cond
+      (or
+       (not meta-height)
+       (not meta-width)
+       (not pattern-height)
+       (not pattern-width))
+      output-grid
+      ;; Check for zero dimensions first to avoid division by zero
+      (or (= 0 meta-height) (= 0 meta-width)
+          (= 0 pattern-height) (= 0 pattern-width)
+          (= 0 out-height) (= 0 out-width))
+      output-grid
+
+      ;; Check if meta-pattern dimensions divide evenly into output dimensions
+      (or (not= 0 (rem out-height meta-height))
+          (not= 0 (rem out-width meta-width)))
+      output-grid
+
+      ;; Check if pattern fits in the subgrid regions
+      :else
+      (let [ ;; Calculate the size of each subgrid region
+            subgrid-height (quot out-height meta-height)
+            subgrid-width (quot out-width meta-width)]
+        (cond
+          ;; Check if pattern fits in the subgrid regions
+          (or (> pattern-height subgrid-height)
+              (> pattern-width subgrid-width))
+          output-grid
+
+          ;; Valid dimensions - proceed with filling
+          :else
+          (do
+            ;; Iterate through the meta-pattern
+            (doseq [meta-y (range meta-height)
+                    meta-x (range meta-width)]
+              (let [meta-value (py.. (py/get-item meta-pattern [meta-y meta-x]) item)]
+                ;; If meta-pattern has non-zero value at this position, place the pattern
+                (when (not (zero? meta-value))
+                  (let [ ;; Calculate where to place the pattern in the output grid
+                        target-y (* meta-y subgrid-height)
+                        target-x (* meta-x subgrid-width)]
+                    (set-subgrid! output-grid pattern target-x target-y)))))
+            output-grid))))))
+
+(comment
+  (def pattern (grid [[1 2] [3 4]]))
+  (fill-with-pattern
+   (zeroes [4 4])
+   pattern
+   ;; (grid [0])
+   (grid [[1 0] [0 0]])))
+
+;; ------------------------------------------------------
 
 (defn clj
   [g]
   (mapv
    (comp vec #(py.. % tolist))
    (py.. g (to :dtype torch/int))))
-
 
 ;; ==================
 
@@ -884,7 +984,6 @@
 
   (/ 21 3)
 
-
   (pack
    (torch/tensor
     [[0 0 0 0 0 0]
@@ -929,11 +1028,4 @@
    :padding [0 1]
    :stride 1)
 
-
-  (max-color g)
-
-
-
-
-
-  )
+  (max-color g))
