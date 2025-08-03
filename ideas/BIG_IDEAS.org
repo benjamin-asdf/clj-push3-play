@@ -149,8 +149,7 @@ Orig   - Origin of Life Event
 
 - Via epigenetics and unconventional genomic information flows, also: "I am useful across the tree of life (look at my epigenetic markers)".
 
-- fitness function in biology is still /inclusive genetic fitness/, but fitness contexts are an open ended problem because of Mut.
-
+- fitness function in biology is still /inclusive genetic fitness/, but fitness contexts are an open ended problem because of =Mut=.
 
 - NOTE: Not to be confused with 'multilevel selection'.
 
