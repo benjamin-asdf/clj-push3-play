@@ -1,4 +1,4 @@
-(ns benjamin-schwerdtner.problems.arc.manual2
+(ns benjamin-schwerdtner.problems.arc.manual3
   (:require
    [benjamin-schwerdtner.clj-push3-play.interpreter :as push]
    [benjamin-schwerdtner.problems.arc.data :as d]
@@ -83,12 +83,13 @@
 
 (comment
   (def task (d/read-task "/home/benj/repos/ARC-AGI-2/data/training/4be741c5.json"))
+
+
+
   (arc/run-push-on-grid-1
    (-> task :test first :input)
    ;; --------------------------
-   '()
-   )
-
+   '())
 
   ;;
   ;; color correspondance: same colors in input and output
@@ -124,9 +125,86 @@
   ;; - implementing a 'contrast scan' would solve the problem
   ;; - 'object topology'
   ;;
-
-
-
-
-
   )
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+(comment
+
+  (require '[benjamin-schwerdtner.clj-push3-play.hdc.fhrr :as fhrr])
+
+  ;; Basic example: creating and manipulating FHRR hypervectors
+
+  ;; Create some basic hypervectors
+  (def dimensions 1000)
+  (def opts {:dimensions dimensions})
+
+  ;; Create symbolic hypervectors for different concepts
+  (def red (fhrr/random opts))
+  (def blue (fhrr/random opts))
+  (def car (fhrr/random opts))
+  (def house (fhrr/random opts))
+
+  ;; Create hypervectors for properties and relations
+  (def color (fhrr/random opts))
+  (def object (fhrr/random opts))
+
+  ;; Bind concepts with properties: "red car" and "blue house"
+  (def red-car (fhrr/bind red car))
+  (def blue-house (fhrr/bind blue house))
+
+  ;; Bundle to create a memory containing both concepts
+  (def memory (fhrr/bundle red-car blue-house))
+
+  ;; Query the memory: what's red?
+  ;; Bind memory with inverse of red to extract what's associated with red
+  (def what-is-red (fhrr/bind memory (fhrr/inverse red)))
+
+  ;; Check similarity with car and house
+  (fhrr/cosine-similarity what-is-red car)
+  (fhrr/cosine-similarity what-is-red house)
+
+
+  ;; Demonstrate role-filler binding
+  ;; Create roles and fillers
+  (def agent (fhrr/random opts))
+  (def patient (fhrr/random opts))
+  (def action (fhrr/random opts))
+
+  (def john (fhrr/random opts))
+  (def mary (fhrr/random opts))
+  (def love (fhrr/random opts))
+
+  ;; Represent "John loves Mary"
+  (def john-loves-mary
+    (fhrr/multibundle
+     (torch/stack [(fhrr/bind agent john)
+                   (fhrr/bind action love)
+                   (fhrr/bind patient mary)]
+                  :dim 1)))
+
+  ;; Query: who is the agent?
+  (def who-agent (fhrr/bind john-loves-mary (fhrr/inverse agent)))
+  (fhrr/cosine-similarity who-agent john)
+  (fhrr/cosine-similarity who-agent mary))

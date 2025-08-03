@@ -1,0 +1,203 @@
+* MMM(U) Evolution
+
+Adaptationism, Abstract replicator theory (Dawkins 1976, 1982) and Gradualism (Dennett 1995) are the best theory of life, but they
+
+- Don't explain evolutionary open endedness (creativity).
+- Failed to inspire evolutionary algorithms that work.
+- Don't explain why evolution works /so well/.
+- Don't satisfactorily explain beauty in nature.
+- Have a problem with explaining sex.
+- Population Genetics models do not incoorparate symbiogenesis, horizontal gene transfer (Virusphere).
+
+** Metaevolution
+
+- Mutation operator: =Mut=, a function producing =varations= given a =genome= G.
+
+  #+begin_src
+  Mut(G) = G', G'', ...
+  #+end_src
+
+- Genomic =Mut= (Metaevolution): mutation operator is encoded in genes, replicates and evolves, too.
+
+- Evolability / Adaptability: Dynamic Mut, can depend on organismic state and epigenetics, cross-generational Baldwin effects. (~ Neo Lamarkian).
+
+- Quasi teleological (!): 'Directed mutation' via Mut criteria: Elegance (well-design), beauty, composability etc. are possible.
+
+- =Mut= is adaptated. /Adaptations about adaptations/, meta adaptationism, is mathematically (software engineering wise) richer and more alive than first order adaptationism.
+
+- We are licenced to model =Mut= via /algorithmic mutations/. The complexity of a mutation (/mutation distance/ of G to G') is equal to the 'program size complexity' of the mutation,
+  aka the 'relative information content' in algorithmic complexity theory (G. Chaitin 1975 ACM paper).
+
+- Example: 1) Doubleling the genome is a single algorithmic step, is simple. 2) Flipping all bits via the =inverse= function is simple.
+  But in a bit-wise mutation paradigm (point mutations) exponentially unlikely. (Factor 2^k where k is the number of bits).
+
+** Modularity and Unconventional Information Flows
+
+- combination operator: =Compose=, a mutation function producing =variations=, /symbionts/, /combinations/, given 2 genomes =A=, =B=:
+
+  #+begin_src
+  Compose(A,B) = A+B
+  #+end_src
+
+
+- Biological mechanisms: Symbiogenesis, Sex, jumping Genes, the Virosphere.
+- Natural selection is a divide and conquer algorithm, not hill climber! (R. Watson).
+
+- Tree Of Life =TOL= has multi-parent relantionships - Endosymbiogenis (Margulis 1967).
+
+Classical TOL:
+
+[[edraw:data=H4sIAJlfj2gAA8VVy46bMBT9FcuzaaUh2EAzJAqR2lU2VaUu6GPnggErxEa2E5h+fe8FMpmmM+qqqXjY9xGfc4+vycadajIcWu0y2njfrcOw7/tFHy+MrcOIMRZCBp1S1kOr9P6lRL5arcIxSkmvSt9k9N2SUdJIVTc+o0kExklap4zOKF9wut2UsnJElRmVpRV9gCZ4D8Lupf3dH7BAWGt6SqbolwlhebZ3Mwo4OiudtCf53nWy8J+FVyaj2mgJ8Er2H8yQ0YAzgk+ENyVWVl8zOk2+jRNjldSwnjh6Q4nz1uzleZXJCuYiOSWVatuM3nGGFxTQCd8QYP8RIO6DB0S6fyDJPftOSbjdhBNlmGDB240FmmQYYR/H96vyXST5IYp9bc1Rl9fsZjJVVY1g9fMfmfIR6Mm2VZ2TV3VEl4XOlTytleIF6gC9Ua5hGguw4wQn6EBPOBc/VRhIDdhH2765+2Mj317r+Dr+VBfqGaWM8CXbxYyRGPYOwEm8ZDmHkYOd3I5CtITWSS7QnN0GHjs2BXjGdhxGpAIUdkAhB0o5UopwzoAaxiEPBshCrpNUOSZDIE9ZDp4bsB4FSv9CwMvBE3wFQheNsRk9qLJssaWN9kElDqqFhnNCuwAOuKrmgFM/AZun1+cQP1hr14kCoudvwnjCYjxX2LEpHNZPVtWbEGH//cZBy+bQujkAN9HlfmnjUKpLwv/XbJYsQclK6QqQR2jvzsrdbu/YMyKAJZ039olGWMMDf1bbX1By7DDUBgAA]]
+
+Updated TOL (subversive):
+
+[[edraw:data=H4sIANxpj2gAA71W32+bMBD+Vyz3ZZNKsUlK0yogbdKkPGyatEnZjzcKBqwQO7LdkOyv352BtM2SqQ8tAgO2L/6+++58ztxuK7JbN8omtHZucxeGbdtetZMrbaowYoyFYEE7k7tdI9XqlCG/vb0N/SwlrSxcndCYx5TUQla1gw67pmQrjJVaJZRfcZrOC1FaIouEisJkbYBdGF1nZiXM8/GABZkxuqWkm/3RIwz9xYBCycYIK8xWfLAbkbtvmZM6oUorAfBStB/1LqEBZwRbhDclRpQ/E9p9/PIf2kihYL3swWlKrDN6JYZVul7QO8kpKWXTJPSCM7zAgU3magLsvwDEZXCDSJc3ZHrJflMSpvOwowwf6HA6N0CT7Dzs3j/PyvcoyX2WryqjH1RxzK4nU5alB6ue/kgXe6AnmkZurDjyI3pcaPDksNYML1AH6Hm5dt07h/4kxg8cmDIP6J3vPAyEAuwH07y7+CeQ7491PI/f+YV6AgaZTNlyEkFjrI6e3ctoBi2GBiYR9p+bLDnMc5jnMM+xz9gShuK3Jz7xicYWQPrtRZp1WFHv16uGO2JDuMfwhDFyImZ9NH3klhjqkZiApsBmgWxGxcakx3hGB/wFqLHg2IdxGIpP5v4CjP6X9csRdizvEx/ACe/xnNg5go8gU3mtTULXsigarF1auaDM1rKBVLOZsgFUcln2E1b+ASg+Oy64eDLd2U2Ww+xQ/H0p9SUJcxWilH7fr+chop4iYF1m3KvjT+MOf4qHggMLRfIms3aox54CnJjiYAUkCQkIvO6lroQSVlryaQtHEXDHBV62jlf5JXYFqiTWNP1qZAXA+JKK6JJ8lqU4Qn6q3ksUOB/iJ0qeU3yPR57neY3CFMLmkJuZcnZ0Hr5oD0RgHWGdNgcab7l7YNMAKGxvLD6ERyPvn+th/4AAKWYjKRvdjuF4d4TVI1RXqIxjQWEhj7pCPm4cJ7MujpjIfqcPIQwraPDnPv0LetusYgQMAAA=]]
+
+
+** Multi Dimensional Selection
+
+- Classical Fitness: A function that returns a value given a genome =G=:
+
+#+begin_src
+
+  fitness(G) = r ; r ∈ R
+#+end_src
+
+- In population genetics this function is =inclusive genetic fitness= (R. Trivers, W.D. Hamilton,...).
+
+- In coevolutionary games: "Aspects of play" (Bucci, Pollack, and De Jon 2004, De Jon and Pollack 2004).
+- Say chess 1 directive: "Play good chess". This can mean be good at the endgame, controlling the center of the board, protecting the queen and so on.
+- 'Pareto coevolution' (Watson and Pollack 200a; Ficici and Pollcak 2001); Model different oponents, situations, contexts (the idea is to represent aspects of play):
+
+- Pareto dominance function: Individual A is pareto dominant over inidividual B, if it performs equal or better in all =contexts=.
+
+  #+begin_src
+
+    let fitness(θ,O) = fitness of individual O in context θ
+
+    pareto-dominance(A,B) = ∀(θ)∈contexts: fitness(θ,A) >= fitness(θ,B)
+
+  #+end_src
+
+
+- Because of metaevoution: =Mut= can use metaevolutionary heuristics.
+- Example: Length of the genome, elegance and beauty heuristics of genome.
+
+
+- Virtual fitness context: Since =Mut= is an adaptation, it could even use information processing
+  to filter candidate varations (=G1=, =G2=, ... ) of genome =G=.
+
+- Natural selection is licenced to steer mutation towards composable, elegant, beautiful systems.
+- In terms of genes eye view: A gene can advertise to the mutation operators "Look at me, I am an elegant (fit with many other genes, still short, ...) and evolvable".
+
+- Via epigenetics and unconventional genomic information flows, also: "I am useful across the tree of life (look at my epigenetic markers)".
+
+- fitness function in biology is still /inclusive genetic fitness/, but fitness contexts are an open ended problem because of Mut.
+
+
+- NOTE: Not to be confused with 'multilevel selection'.
+
+** Unconventional Information Flows
+
+- Biology: Jumping Genes, the Virosphere etc.
+- Because of =Mut= (Evolability) as adaptation, unconventional information flows can be evolved, too.
+- ? Model tree of life with non-zero horizontal gene transfer between gene pools (pop genetics paradigm)?.
+- ? Model =Mut= as separate evolving genome from =domain-genome= ?
+
+
+
+
+
+
+
+-------------------------------
+
+
+
+* Brain Development Is A Program Synthesis
+
+- Cognition is a kind of software, created in a software synthesis task during development
+- The question of brain software is one of knowledge creation, where does the ad-hoc design of brain software come from?
+- Piaget's genetic epistemology
+- Cognition, biology and large scale software systems are all *evolving software*
+- This is the perspective I want to take, one of platonic software animals
+
+* Elegance Is The Missing Link Between Aesthetics, Art, Science, Creativity
+
+** Definition and Properties
+- Elegance is the property of good design (in Software design)
+- The Vitruvian Triad is "durability, convenience, and beauty"
+- Elegance is pragmatic, useful and *delightful*
+- Elegance is mysterious, hangs together with truth, scientific discovery and art
+- In pure math, an 'elegant' program is sometimes the shortest computer program with a certain input-output, given an axiomatic system A
+
+** In Programming
+- The best source code is usually not the shortest. But has to do with utilizing the material at hand, and doing so with a 'sensibleness', and 'straight forwardness'
+- The best source code displays 'artistic swag', 'conscinitious' or 'technical sweetness'
+- One idea would be that by modeling real-world resources, combining 'short' and 'frugal' would yield a notion of elegance closer to the one in computer programing
+
+** Self-Evidence and Sophistication
+- Beyond simplicity, the best design is self evident. Self-evidence is the true swag, beyond even beauty
+- Leonardo da Vinci: "Simplicity is the ultimate sophistication"
+
+** In Biology
+- Elegance in biology in my feel has something to do with the range of possible uses of a thing. An elegant design is one that let's one *win* in the future
+- Like planning for the unplanned to occur. Because problem solving in the real world is open ended
+- G. Chaitin points out that adaptationism is wrong. It get's the open endedness 'keeps on going' part of evolution wrong!
+- Therefore, the problems of creativity and open endedness truly are at the cutting edge of theoretical evolutionary biology also
+
+** Open-Endedness
+- Elegance is a creative problem and therefore open ended. I.e. there is no 'most elegant' solution to anything
+- The same way as we can always find out better theories of the world (Popper), we can find new creative ways of solving problems
+
+* The Elegance Detector Hypothesis
+
+** Core Conjecture
+- Conjecture: Brain circuits implement algorithms that provide heuristics for elegance. Hypothetical *elegance detectors* would exist
+- These are adapted, are encoded in the genome and can by definition not look at the content of mentality, only the hardware level implementation of it
+
+** Mechanisms
+*** Idea #1: Time
+By allowing a settled activity to inhibit all alternatives, the fastest program could win
+
+*** Idea #2: Inhibition
+The amount of inhibition an activity patterns sustains could be an indication of it's connectedness to the rest of the network, making it an idea that 'fits well' with the overall memory structure (~ world model) of the network
+
+*** Humor and Reward Connection
+- Braitenberg: Maybe tickle circuits were re-used as humor circuits, activated by elegance detectors, thereby being 'fun lines' that the system can use for instance for it's reward model
+
+* A Software System Supporting Software Animals Made From Activity
+
+** Idea #3: Autopoetic Behavior
+Behaviour (programs) that feedback activity to their own selection would be autopoetic, self-stabilizing. If activity is 'stable activity' by:
+- priming the correct sensors: it implements prediction and control
+- pleasing darwinian wires: it has to do with being an effective animal controller
+- gaining activity support from all available network: it has to do with recruiting the complete nervous system in a resourceful manner
+- inhibiting it's alternatives: it implements contrast, attention, top-down causation (self-fulfilling prophecies)
+- being repeatable: it implements long term memory
+
+* Activity Pattern Timescales
+
+An activity pattern surviving for...
+
+| Duration        | Manifestation                               |
+|-----------------+--------------------------------------------|
+| minutes / hours | situations, feelings, fleeting thoughts, day dreaming |
+| hours / days    | moods, rumination                          |
+| days / weeks    | habits, quirks                             |
+| weeks / months  | personalities, interests, traits          |
+| months / years  | the soul, the I                           |
+| years - decades | rich network of memories, having a life   |
+
+
+* TODO Items
+** TODO Figure out the essential components of open ended evolution
+** TODO Extract brain adaptations for software synthesis
+** TODO Consider cultural embedding for machines
+
+* Notes
+- The Holy Grail Of Software Synthesis (commented out in original)
+- Approach 1: Figure out what evolved adaptations the brain uses for it's software synth. task
+- Extract the essential features and use them in a model
+- It is possible that the essentials include a cultural context
+- In this case part of the challenge could be embedding the machine in a useful way in human culture?

@@ -11,6 +11,11 @@ Clojush, an implementation of Push/PushGP in Clojure that has been used for many
 - Heavily reuse Clojush source code. 
 - Be slighly more data oriented.
 
+## Other work
+
+- [propeller](https://github.com/lspector/propeller)
+
+
 
 ## Interpreter
 
@@ -48,26 +53,7 @@ Preliminary interface:
 - explore open ended problems and creativity (G. Chaitins Metabiology but applied).
 - Implement [HDC/VSA](https://www.hd-computing.com/) operators.
 - Figure out a hyper dimensional representation of push code so that the same program can be target of 
-  symbolic and neural / subsymbolic algorithms. 
+  symbolic and neural / subsymbolic algorithms.
   
   
-
-
-
   
-  
-
-
-
-
-
-
-
- 
-
-
-
-
-
-
-
