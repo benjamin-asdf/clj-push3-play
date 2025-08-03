@@ -130,9 +130,9 @@ Orig   - Origin of Life Event
 
   #+begin_src
 
-    let fitness(θ,O) = fitness of individual O in context θ
+    let context-sensitive-fitness(θ,O) = fitness of individual O in context θ
 
-    pareto-dominance(A,B) = ∀(θ)∈contexts: fitness(θ,A) >= fitness(θ,B)
+    pareto-dominant?(A,B) = ∀(θ)∈contexts: context-sensitive-fitness(θ,A) >= context-sensitive-fitness(θ,B)
 
   #+end_src
 
