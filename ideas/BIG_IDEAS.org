@@ -45,6 +45,9 @@ Adaptationism, Abstract replicator theory (Dawkins 1976, 1982) and Gradualism (D
 - Biological mechanisms: Symbiogenesis, Sex, jumping Genes, the Virosphere.
 - Natural selection is a divide and conquer algorithm, not hill climber! (R. Watson).
 
+- A symbiogentic algorithm (using a compose function), allows joining to /separately evolved/ genomes.
+
+
 - Tree Of Life =TOL= has multi-parent relantionships - Endosymbiogenis (Margulis 1967).
 
 Classical TOL:

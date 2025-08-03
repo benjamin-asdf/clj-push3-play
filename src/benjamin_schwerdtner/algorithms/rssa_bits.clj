@@ -45,9 +45,6 @@
 
 ;; - reciprocal, both entities 'want' the synergy
 
-
-;; code would be nice
-
 (defn initial-synergy-matrix [ecosystem-size]
   (vec
    (for [_i (range ecosystem-size)]
