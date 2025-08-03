@@ -7,6 +7,9 @@
 
 ;; https://link.springer.com/chapter/10.1007/978-3-540-74913-4_119
 
+;; Alg is relatively hard to make from papar alone unfortunately.
+;;
+
 ;; 1. population of candidates that is supposed to model entities in an ecosystem,
 ;;    that _do not_ compete for the same niche.
 ;; - a candidate entity only specifies alleles for a subset of the problem loci

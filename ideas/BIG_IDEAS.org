@@ -19,17 +19,19 @@ Adaptationism, Abstract replicator theory (Dawkins 1976, 1982) and Gradualism (D
 
 - Genomic =Mut= (Metaevolution): mutation operator is encoded in genes, replicates and evolves, too.
 
-- Evolability / Adaptability: Dynamic Mut, can depend on organismic state and epigenetics, cross-generational Baldwin effects. (~ Neo Lamarkian).
+- Evolability / Adaptability: Dynamic Mut, can depend on organismic state and epigenetics, analogoues cross-generational Baldwin effects. (so called 'Neo-Lamarckian' effects).
+  But now even in the domain of Evolability.
 
-- Quasi teleological (!): 'Directed mutation' via Mut criteria: Elegance (well-design), beauty, composability etc. are possible.
+- Pseudo teleological (!): 'Directed mutation' via Mut criteria: Elegance (well-design), beauty, composability etc. are possible.
+- No teleology is needed, just a rich higher order adaptation.
 
 - =Mut= is adaptated. /Adaptations about adaptations/, meta adaptationism, is mathematically (software engineering wise) richer and more alive than first order adaptationism.
 
 - We are licenced to model =Mut= via /algorithmic mutations/. The complexity of a mutation (/mutation distance/ of G to G') is equal to the 'program size complexity' of the mutation,
   aka the 'relative information content' in algorithmic complexity theory (G. Chaitin 1975 ACM paper).
 
-- Example: 1) Doubleling the genome is a single algorithmic step, is simple. 2) Flipping all bits via the =inverse= function is simple.
-  But in a bit-wise mutation paradigm (point mutations) exponentially unlikely. (Factor 2^k where k is the number of bits).
+- Example: 1) Doubleling the genome is a single algorithmic step. 2) Flipping all bits via the =inverse= function is simple.
+  But in a bit-wise mutation paradigm (using point mutations) exponentially unlikely. (Factor 2^k where k is the number of bits).
 
 ** Modularity and Unconventional Information Flows
 
