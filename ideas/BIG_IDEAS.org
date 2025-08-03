@@ -1,4 +1,4 @@
-* MMM(U) Evolution
+* MMM(U) Evolution | Metaevolution, Modularity, Multi Dimensional Selection, (and Unconventional Informatoin Flows)
 
 Adaptationism, Abstract replicator theory (Dawkins 1976, 1982) and Gradualism (Dennett 1995) are the best theory of life, but they
 
@@ -165,15 +165,7 @@ Orig   - Origin of Life Event
 - ? Model tree of life with non-zero horizontal gene transfer between gene pools (pop genetics paradigm)?.
 - ? Model =Mut= as separate evolving genome from =domain-genome= ?
 
-
-
-
-
-
-
 -------------------------------
-
-
 
 * Brain Development Is A Program Synthesis
 
