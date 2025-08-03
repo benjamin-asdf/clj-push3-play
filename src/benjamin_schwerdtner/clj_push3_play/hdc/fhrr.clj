@@ -4,6 +4,9 @@
    [libpython-clj2.python :refer [py. py..] :as py]
    [benjamin-schwerdtner.clj-push3-play.hdc.config :refer [*torch-device*]]))
 
+(require-python '[torch :as torch]
+                '[torch.nn.functional :as F])
+
 ;;
 ;; Fourier Holographic Reduced Representation
 ;; Proposed in "Holographic Reduced Representation: Distributed Representation for Cognitive Structures"
@@ -98,20 +101,7 @@
      (torch/complex (py.. angle (cos))
                     (py.. angle (sin))))))
 
-(defn bundle
-  "Bundle hypervectors using element-wise sum.
-
-  This produces a hypervector maximally similar to both inputs.
-  The bundling operation is used to aggregate information into a single hypervector.
-
-  Args:
-    x: first hypervector
-    y: second hypervector
-
-  Returns:
-    Bundled hypervector (x + y)"
-  [x y]
-  (torch/add x y))
+(def seed random)
 
 (defn multibundle
   "Bundle multiple hypervectors along the second-to-last dimension.
@@ -122,7 +112,29 @@
   Returns:
     Single bundled hypervector with shape [..., dimensions]"
   [xs]
-  (torch/sum xs :dim -2))
+  (let [xs (if (seqable? xs) (torch/cat (vec xs)) xs)]
+    (->
+     (torch/sum xs :dim -2)
+     (torch/reshape [-1 (:fhrr/dimensions *opts*)]))))
+
+(defn superposition
+  "Return the superposition of the hypervectors using element-wise sum.
+
+  This produces a hypervector maximally similar to both inputs.
+  The bundling operation is used to aggregate information into a single hypervector.
+
+  Args:
+    x: first hypervector
+    y: second hypervector
+
+  Returns:
+    Bundled hypervector (x + y)"
+  ([xs]
+   (multibundle xs))
+  ([x y] (torch/add x y)))
+
+(def bundle superposition)
+
 
 (defn bind
   "Bind hypervectors using element-wise multiplication.
@@ -148,7 +160,9 @@
   Returns:
     Single bound hypervector with shape [..., dimensions]"
   [xs]
-  (torch/prod xs :dim -2))
+  (->
+   (torch/prod xs :dim -2)
+   (torch/reshape [-1 (:fhrr/dimensions *opts*)])))
 
 (defn inverse
   "Invert the hypervector for binding.
@@ -163,6 +177,8 @@
     Inverted hypervector (complex conjugate of x)"
   [x]
   (py.. (torch/conj x) (resolve_conj)))
+
+(defn unbind [x y] (bind x (inverse y)))
 
 (defn negative
   "Negate the hypervector for the bundling inverse.
