@@ -7,3 +7,8 @@
 
 (def ^:dynamic *torch-device*
   (if (py.. torch/cuda is_available) :cuda :cpu))
+
+(def ^:dynamic *torch-device*
+  :cpu
+  ;; (if (py.. torch/cuda is_available) :cuda :cpu)
+  )

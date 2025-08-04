@@ -50,15 +50,12 @@
 (def ^:dynamic *opts* {:fhrr/dimensions (long 1e4)})
 
 (defn zeroes
-  ([] (zeroes {}))
-  ([{:keys [num-vectors dimensions device]
-     :or {device *torch-device*
-          dimensions (:fhrr/dimensions *opts*)
-          num-vectors 1}}]
+  ([] (zeroes 1))
+  ([num-vectors]
    (torch/zeros num-vectors
-                dimensions
+                (:fhrr/dimensions *opts*)
                 :dtype torch/complex64
-                :device device)))
+                :device *torch-device*)))
 
 (defn unit
   "
@@ -74,14 +71,11 @@
   Alias `identity`, `ones`
 
   "
-  ([] (unit {}))
-  ([{:keys [num-vectors dimensions device]
-     :or {device *torch-device*
-          dimensions (:fhrr/dimensions *opts*)
-          num-vectors 1}}]
+  ([] (unit 1))
+  ([num-vectors]
    (torch/ones num-vectors
-               dimensions
-               :device device
+               (:fhrr/dimensions *opts*)
+               :device *torch-device*
                :dtype torch/complex64)))
 
 (def ones unit)
@@ -89,14 +83,11 @@
 (defn random
   "
   "
-  ([] (random {}))
-  ([{:keys [num-vectors dimensions device]
-     :or {device *torch-device*
-          dimensions (:fhrr/dimensions *opts*)
-          num-vectors 1}}]
-   (let [size [num-vectors dimensions]
+  ([] (random 1))
+  ([num-vectors]
+   (let [size [num-vectors (-> *opts* :fhrr/dimensions)]
          angle (->
-                (torch/empty size :dtype torch/float32 :device device)
+                (torch/empty size :dtype torch/float32 :device *torch-device*)
                 (py.. (uniform_ (- Math/PI) Math/PI)))]
      (torch/complex (py.. angle (cos))
                     (py.. angle (sin))))))
