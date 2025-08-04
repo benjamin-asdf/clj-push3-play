@@ -1,4 +1,4 @@
-* MMM(U) Evolution | Metaevolution, Modularity, Multi Dimensional Selection, (and Unconventional Informatoin Flows)
+* MMM(U) Evolution
 
 Adaptationism, Abstract replicator theory (Dawkins 1976, 1982) and Gradualism (Dennett 1995) are the best theory of life, but they
 
@@ -9,7 +9,7 @@ Adaptationism, Abstract replicator theory (Dawkins 1976, 1982) and Gradualism (D
 - Have a problem with explaining sex.
 - Population Genetics models do not incoorparate symbiogenesis, horizontal gene transfer (Virusphere).
 
-** Metaevolution
+** Metaevolution / Meta Adaptionism
 
 - Mutation operator: =Mut=, a function producing =varations= given a =genome= G.
 
@@ -165,7 +165,38 @@ Orig   - Origin of Life Event
 - ? Model tree of life with non-zero horizontal gene transfer between gene pools (pop genetics paradigm)?.
 - ? Model =Mut= as separate evolving genome from =domain-genome= ?
 
+** Metabiology (G. Chaitin)
+
+- emphasize biology as software archeology
+- emphasize creativity
+
 -------------------------------
+
+** Adaptationism
+
+- A =replicator= is =information= (David Deutsch: knowledge) that is caused by a =niche= to be replicated.
+  We say the replicator is /adapted/ to the niche.
+
+- An /adaptation/ is a /design/ with the property that small changes in the adaptation cause it to not be adaptative anymore.
+- For this property to make sense, the /alternatives/ of the design must be /possible/.
+- We call the /state space/ of the /search process/ of evolution /design space/.
+- Similarly, for a /gene/ to be /for/ something. There must be alternative genes for variations of the /for/ in question (Dawkins).
+- /Design/ is hard to fake, hard to vary, and hard to come by.
+- The /hard to vary/ property can be observed indirectly via [[https://en.wikipedia.org/wiki/Convergent_evolution][Convergent Evolution]] in nature.
+  Given a niche, this is a good design - and only very slight deviations are permissible.
+
+- *Adaptationism*: Saying that only way of obtaining /design without designer/ (sometimes "appearance of design") is via replicators and their adaptations.
+  (I don't like to say 'appearance of design' when it really is design. The essential difference to intelligent design is merely genetic, i.e. where it comes from).
+
+- Adaption on the surface example: Camouflage: natural selection coming closer to the 'ideal' surface / visual properties of the background (niche).
+
+- The same power of adaptation holds for all aspects of organisms: morphology, physiology, cell physiology, hormonal messanging, neural development,
+  behavioural plans,... I.e. The /extended phenotype/ of a replicator.
+- The 'tiny chizzles of evolution' carve at every aspect of organisms.
+
+- *Meta Adaptionism*: The idea that 'evolability' is adaptated. A /meta adaptation/ is an algorithmic aspect of a search process.
+  It lives in the mathematical space of /possible search processes/ and is thereby even more alive, more open ended, more creative
+  than /domain-level adaptations/.
 
 * Brain Development Is A Program Synthesis
 

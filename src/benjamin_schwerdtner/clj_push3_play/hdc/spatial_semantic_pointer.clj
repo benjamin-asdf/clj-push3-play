@@ -17,7 +17,7 @@
 ;; Annual Meeting of the Cognitive Science Society, 2019.
 
 ;;
-;; Problem: Represent continous spaces such as maps, surfaces, grid cells, ...
+;; Problem: Represent continous spaces such as maps, surfaces, grid cells(?), ...
 ;;
 ;;
 ;; Compared to non continous representations: Maps, graphs, trees, etc. [data.clj]
@@ -68,8 +68,6 @@
    Returns:
      FHRR hypervector representing x^k
 
-
-
 (let [a (fhrr/seed)
       b (fhrr/seed)]
      [
@@ -97,6 +95,22 @@
   5018.95556640625 3643.337890625 2293.382568359375 1037.0408935546875
   -66.8578109741211 -972.173095703125]]
 
+  ------------------------------
+
+
+  Also it holds:
+
+  1)  ∀(a,b)∈H: (a ⊗ b) ⊗ fractional-power-encoding(a, -1) = (a ⊗ b) ⊘ a = b
+
+  where
+  ⊗ is [[bind]]
+  ⊘ is [[unbind]].
+
+  2)  ∀(a)∈H:  fractional-power-encoding(a, -1) = inverse(a).
+
+  Strictly speaking this is approximate, but when the vectors are unitary, like by [[fhrr/seed]],
+  it is the true inverse.
+
   "
   [x k]
   ;; Get the phase angles of the complex numbers
@@ -107,7 +121,6 @@
         result (torch/complex (torch/cos scaled-angles)
                               (torch/sin scaled-angles))]
     result))
-
 
 ;; ------------------------------------------------------
 ;; with this in hand:
@@ -126,8 +139,6 @@
   x and y are real numbers.
 
   Usage represent locations / regions:
-
-
 
    (let [p1 [0 0]
         p2 [0.2 0.2]
@@ -217,12 +228,15 @@
                                        (spatial-semantic-pointer-2d p3))
                           (torch/cat [a b]))]))
 
-
 ;; --------------------------------------------------------------
 
 (defn spatial-semantic-memory-2d
   "Returns a spatial semantic memory hd representing
   the objects standing for `obj-hdvs` at `points`.
+
+  Query it using unbind.
+  As with HD 'record', both key and value can be used to query.
+  I.e. both objects and locations/ regions.
 
   "
   [points obj-hdvs]
@@ -233,6 +247,33 @@
          points)
     obj-hdvs)))
 
+(defn query
+  "Like the query of a HD record.
+  This is just [[unbind]].
+  "
+  [mem obj-or-region-location]
+  (fhrr/unbind mem obj-or-region-location))
+
+(defn query-location [mem [x y]]
+  (fhrr/bind
+   mem
+   (spatial-semantic-pointer-2d [(- x) (- y)])))
+
+(defn query-region [mem points]
+
+  )
+
+
+
+
+(comment
+  (let [a (fhrr/seed)
+        b (fhrr/seed)]
+    (fhrr/dot-similarity
+     (fhrr/bind (fhrr/bind a b) (fractional-power-encoding a -1))
+     (fhrr/unbind (fhrr/bind a b) a)))
+  ;; tensor([[10000.]], device='cuda:0')
+  )
 ;; ---------------------------------------
 
 (comment
