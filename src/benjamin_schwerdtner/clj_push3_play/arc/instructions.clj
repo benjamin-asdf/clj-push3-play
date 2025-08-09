@@ -310,6 +310,13 @@
        (grid/color-frequencies g))})
 
 (register-instruction
+ {:sym-name 'grid_distinct_colors
+  :in [:push/grid]
+  :out [:push/vector :push/integer]
+  :f (fn [_ g]
+       (grid/distinct-colors g))})
+
+(register-instruction
  {:sym-name 'grid_max_color
   :in [:push/grid]
   :out :push/integer

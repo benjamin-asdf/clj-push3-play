@@ -4,7 +4,16 @@
    [benjamin-schwerdtner.problems.arc.data :as d]
    [benjamin-schwerdtner.clj-push3-play.stack.pushstate :as stack]
    [benjamin-schwerdtner.clj-push3-play.arc.grid-impl :as grid]
-   [benjamin-schwerdtner.problems.arc.push :as arc]))
+   [benjamin-schwerdtner.problems.arc.push :as arc]
+   [benjamin-schwerdtner.clj-push3-play.hdc.ssp-grid :refer [encode-grid]]
+   [benjamin-schwerdtner.clj-push3-play.hdc.fhrr :as fhrr]
+   [libpython-clj2.require :refer [require-python]]
+   [benjamin-schwerdtner.clj-push3-play.hdc.spatial-semantic-pointer :as ssp]
+   [libpython-clj2.python :refer [py. py..] :as py]))
+
+(require-python '[torch :as torch]
+                '[torch.nn.functional :as F])
+
 
 ;; --------------------------------------------
 
@@ -32,24 +41,24 @@
 
 
   '{:test-out
-   ({:out [[4 4 4 4 4]]
-     :pair {:input [[4 4 0] [4 0 4] [0 0 4]] :output [[4 4 4 4 4]]}
-     :success? true})
-   :test-success [true]
-   :train-out
-   ({:out [[7]]
-     :pair {:input [[0 7 0] [0 0 0] [0 0 0]] :output [[7]]}
-     :success? true}
-    {:out [[2 2 2]]
-     :pair {:input [[0 2 0] [2 0 0] [0 2 0]] :output [[2 2 2]]}
-     :success? true}
-    {:out [[8 8 8 8]]
-     :pair {:input [[0 8 0] [8 8 0] [8 0 0]] :output [[8 8 8 8]]}
-     :success? true}
-    {:out [[1 1]]
-     :pair {:input [[0 0 0] [1 0 0] [0 1 0]] :output [[1 1]]}
-     :success? true})
-   :train-success [true true true true]}
+    ({:out [[4 4 4 4 4]]
+      :pair {:input [[4 4 0] [4 0 4] [0 0 4]] :output [[4 4 4 4 4]]}
+      :success? true})
+    :test-success [true]
+    :train-out
+    ({:out [[7]]
+      :pair {:input [[0 7 0] [0 0 0] [0 0 0]] :output [[7]]}
+      :success? true}
+     {:out [[2 2 2]]
+      :pair {:input [[0 2 0] [2 0 0] [0 2 0]] :output [[2 2 2]]}
+      :success? true}
+     {:out [[8 8 8 8]]
+      :pair {:input [[0 8 0] [8 8 0] [8 0 0]] :output [[8 8 8 8]]}
+      :success? true}
+     {:out [[1 1]]
+      :pair {:input [[0 0 0] [1 0 0] [0 1 0]] :output [[1 1]]}
+      :success? true})
+    :train-success [true true true true]}
   )
 
 
@@ -83,13 +92,6 @@
 
 (comment
   (def task (d/read-task "/home/benj/repos/ARC-AGI-2/data/training/4be741c5.json"))
-
-
-
-  (arc/run-push-on-grid-1
-   (-> task :test first :input)
-   ;; --------------------------
-   '())
 
   ;;
   ;; color correspondance: same colors in input and output
@@ -125,86 +127,75 @@
   ;; - implementing a 'contrast scan' would solve the problem
   ;; - 'object topology'
   ;;
+
+  (def grid
+    (torch/tensor
+     [[3 3 3 3 2 2 2 2 2 1 1 1 8 8]
+      [3 3 3 2 2 2 2 2 1 1 1 8 8 8]
+      [3 3 3 3 3 2 2 1 1 1 8 8 8 8]
+      [3 3 3 3 3 2 2 1 1 1 1 8 8 8]
+      [3 3 3 3 2 2 2 2 2 1 1 1 8 8]
+      [3 3 3 3 3 2 2 2 2 1 1 1 1 8]
+      [3 3 3 2 2 2 2 2 1 1 1 1 8 8]
+      [3 3 3 3 2 2 2 2 1 1 1 8 8 8]
+      [3 3 3 3 2 2 2 2 1 1 1 1 8 8]
+      [3 3 3 2 2 2 2 2 2 1 1 1 8 8]
+      [3 3 3 2 2 2 2 2 2 1 1 8 8 8]
+      [3 3 3 3 2 2 2 2 1 1 1 1 8 8]
+      [3 3 3 3 3 2 2 2 1 1 1 1 8 8]
+      [3 3 3 3 3 3 2 2 2 1 1 1 8 8]]
+     :dtype torch/float))
+
+  (def color-codebook (fhrr/seed 10))
+  (defn color-hdv [color] (py/get-item color-codebook color))
+
+
+  (arc/run-push-on-grid-1
+   (-> task :test first :input)
+   ;; --------------------------
+   '(
+     (0
+      grid_distinct_colors
+      vector_integer_dup
+      vector_integer_length
+      1
+      integer_swap
+      grid_new)
+     (vector_integer_pushall)))
+
+
+  [(ssp/readout (ssp/query-object
+                 (encode-grid grid color-codebook [1 1])
+                 (color-hdv 3))
+                {:height 1 :resolution 0.1 :width 1})
+   (ssp/readout (ssp/query-object
+                 (encode-grid grid color-codebook [1 1])
+                 (color-hdv 2))
+                {:height 1 :resolution 0.1 :width 1})
+   (ssp/readout (ssp/query-object
+                 (encode-grid grid color-codebook [1 1])
+                 (color-hdv 1))
+                {:height 1 :resolution 0.1 :width 1})
+   (ssp/readout (ssp/query-object
+                 (encode-grid grid color-codebook [1 1])
+                 (color-hdv 8))
+                {:height 1 :resolution 0.1 :width 1})]
+
+  [[0.5 0.10000000149011612]
+   [0.5 0.4000000059604645]
+   [0.5 0.699999988079071]
+   [0.5 0.8999999761581421]]
+
+
+
+
+  (fhrr/unbind
+   (encode-grid grid color-codebook [1 1])
+   (ssp/spatial-semantic-pointer [0 0]))
+
+
+
+
+
+
   )
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-(comment
-
-  (require '[benjamin-schwerdtner.clj-push3-play.hdc.fhrr :as fhrr])
-
-  ;; Basic example: creating and manipulating FHRR hypervectors
-
-  ;; Create some basic hypervectors
-  (def dimensions 1000)
-  (def opts {:dimensions dimensions})
-
-  ;; Create symbolic hypervectors for different concepts
-  (def red (fhrr/random opts))
-  (def blue (fhrr/random opts))
-  (def car (fhrr/random opts))
-  (def house (fhrr/random opts))
-
-  ;; Create hypervectors for properties and relations
-  (def color (fhrr/random opts))
-  (def object (fhrr/random opts))
-
-  ;; Bind concepts with properties: "red car" and "blue house"
-  (def red-car (fhrr/bind red car))
-  (def blue-house (fhrr/bind blue house))
-
-  ;; Bundle to create a memory containing both concepts
-  (def memory (fhrr/bundle red-car blue-house))
-
-  ;; Query the memory: what's red?
-  ;; Bind memory with inverse of red to extract what's associated with red
-  (def what-is-red (fhrr/bind memory (fhrr/inverse red)))
-
-  ;; Check similarity with car and house
-  (fhrr/cosine-similarity what-is-red car)
-  (fhrr/cosine-similarity what-is-red house)
-
-
-  ;; Demonstrate role-filler binding
-  ;; Create roles and fillers
-  (def agent (fhrr/random opts))
-  (def patient (fhrr/random opts))
-  (def action (fhrr/random opts))
-
-  (def john (fhrr/random opts))
-  (def mary (fhrr/random opts))
-  (def love (fhrr/random opts))
-
-  ;; Represent "John loves Mary"
-  (def john-loves-mary
-    (fhrr/multibundle
-     (torch/stack [(fhrr/bind agent john)
-                   (fhrr/bind action love)
-                   (fhrr/bind patient mary)]
-                  :dim 1)))
-
-  ;; Query: who is the agent?
-  (def who-agent (fhrr/bind john-loves-mary (fhrr/inverse agent)))
-  (fhrr/cosine-similarity who-agent john)
-  (fhrr/cosine-similarity who-agent mary))

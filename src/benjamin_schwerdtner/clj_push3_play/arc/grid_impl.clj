@@ -97,6 +97,12 @@
   (let [flat-grid (into [] (py.. grid flatten tolist))]
     (vec (sort-by second (fn [a b] (compare b a)) (map vec (frequencies flat-grid))))))
 
+(defn distinct-colors [grid]
+  (into
+   []
+   (distinct)
+   (py.. grid flatten tolist)))
+
 (defn max-color
   "Return the color that appears most frequently in the grid"
   [grid]

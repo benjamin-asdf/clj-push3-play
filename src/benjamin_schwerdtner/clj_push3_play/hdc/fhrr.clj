@@ -103,7 +103,7 @@
   Returns:
     Single bundled hypervector with shape [..., dimensions]"
   [xs]
-  (let [xs (if (seqable? xs) (torch/cat (vec xs)) xs)]
+  (let [xs (if (seq? xs) (torch/cat (vec xs)) xs)]
     (->
      (torch/sum xs :dim -2)
      (torch/reshape [-1 (:fhrr/dimensions *opts*)]))))
@@ -304,16 +304,18 @@
   [x]
   (torch/angle x))
 
-
-;; Cleanup function for unbinding
+;; ---------------------------------------------------------
 
 (defn cleanup-idx
   ([x codebook] (cleanup-idx x codebook nil))
   ([x codebook threshold]
-   (let [similarities (similarity x codebook)
-         max-idx (torch/argmax similarities)
-         sim (py.. (torch/index_select similarities 0 max-idx) item)]
-     (when (or (not threshold) (<= threshold sim)) max-idx))))
+   (let [x (py.. x (squeeze))
+         similarities (similarity x codebook)
+         max-idx (torch/argmax similarities)]
+     (if-not threshold
+       max-idx
+       (let [sim (py.. (py/get-item similarities max-idx) item)]
+         (when (<= threshold sim) max-idx))))))
 
 (defn cleanup
   "Clean up a hypervector by finding the closest match from a codebook.
@@ -333,3 +335,18 @@
        (py..
            (torch/index_select codebook 0 max-idx)
          (squeeze))))))
+
+(defn cleanup-batch
+  "Clean up a hypervector by finding the closest match from a codebook.
+
+  This is useful after unbinding operations to recover clean symbolic vectors.
+
+  Args:
+    x: noisy hypervector to clean up
+    codebook: collection of clean hypervectors
+
+  Returns:
+    The hypervector from codebook with highest cosine similarity to x"
+  ([x codebook] (cleanup x codebook nil))
+  ([x codebook threshold]
+   ))

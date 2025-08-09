@@ -2,6 +2,7 @@
   (:require
    [benjamin-schwerdtner.clj-push3-play.hdc.fhrr :as fhrr]
    [benjamin-schwerdtner.clj-push3-play.hdc.config :refer [*torch-device*]]
+
    [libpython-clj2.require :refer [require-python]]
    [libpython-clj2.python :refer [py. py..] :as py]))
 
@@ -146,6 +147,8 @@
                               (torch/sin scaled-angles))]
     result))
 
+(def fpe fractional-power-encoding)
+
 (comment
   (torch/allclose (x-marker) (fractional-power-encoding (x-marker) 0))
   (torch/allclose (x-marker) (fractional-power-encoding (x-marker) 1))
@@ -231,6 +234,7 @@
   (fhrr/bind (fractional-power-encoding (x-marker) x)
              (fractional-power-encoding (y-marker) y)))
 
+
 (defn spatial-semantic-pointer-many
   "See [[spatial-semantic-pointer]] but `points` is a seq of positions.
 
@@ -244,11 +248,11 @@
                                                 :dtype torch/float)))
   ([xs ys]
    (let [x-powers (fractional-power-encoding
-                    (py. (x-marker) unsqueeze 0)
-                    (py. xs unsqueeze 1))
+                   (py. (x-marker) unsqueeze 0)
+                   (py. xs unsqueeze 1))
          y-powers (fractional-power-encoding
-                    (py. (y-marker) unsqueeze 0)
-                    (py. ys unsqueeze 1))]
+                   (py. (y-marker) unsqueeze 0)
+                   (py. ys unsqueeze 1))]
      (fhrr/bind x-powers y-powers))))
 
 (defn spatial-semantic-region-integral
@@ -364,49 +368,9 @@
      (map spatial-semantic-pointer points)
      obj-hdvs))))
 
-(defn encode-grid
-  "Encode a 2D grid into a spatial-semantic-memory-2d.
 
-   Args:
-     grid: 2D tensor with elements ranging from e.g. 0-9
-     color-codebook: tensor of HDVs corresponding to numbers e.g. 0-9
-     [scale-x scale-y]: Default to grid size,
-      say how close the cells of the grids lie together in the encoding.
 
-  When the scale is [1 1], all points (>= [0 0]) in the encoding will have some similarity.
 
-   "
-  ([grid color-codebook]
-   (encode-grid grid
-                color-codebook
-                (mapv dec (vec (py.. grid size)))))
-  ([grid color-codebook [scale-x scale-y]]
-   (let [[height width] (vec (py.. grid size))
-         ;; Create normalized coordinates between 0 and 1, and
-         ;; scale
-         positions (for [i (range height)
-                         j (range width)]
-                     [(* (/ i (- width 1)) scale-x)
-                      (* (/ j (- height 1)) scale-y)])
-         ;; Get numbers from grid and index from the codebook
-         grid-flat (py.. grid (to :dtype torch/long) flatten)
-         number-hdvs (py/get-item color-codebook grid-flat)]
-     (spatial-semantic-memory positions number-hdvs))))
-
-(comment
-  (def codebook (fhrr/seed 10))
-  (for [i (range 3)]
-    (for [j (range 3)]
-      [[i j]
-       (fhrr/cleanup-idx
-        (fhrr/unbind
-         (encode-grid
-          (torch/tensor [[1 2 0]
-                         [3 0 0]
-                         [0 0 6]] :dtype torch/float)
-          codebook)
-         (spatial-semantic-pointer [i j]))
-        codebook)])))
 
 (comment
   (let [a (fhrr/seed)
@@ -494,15 +458,18 @@
   [{:keys [width height resolution]}]
   (let [width (or width 1)
         height (or height 1)
-        resolution (or resolution 0.1)
+        [resolution-x resolution-y]
+          (cond (number? resolution) [resolution resolution]
+                (vector? resolution) resolution
+                :else [0.1 0.1])
         x-coords (torch/arange 0
                                (+ width 0.01)
-                               resolution
+                               resolution-x
                                :device
                                *torch-device*)
         y-coords (torch/arange 0
                                (+ height 0.01)
-                               resolution
+                               resolution-y
                                :device
                                *torch-device*)
         [y-grid x-grid]
