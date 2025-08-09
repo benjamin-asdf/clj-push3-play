@@ -330,4 +330,6 @@
   ([x codebook threshold]
    (let [max-idx (cleanup-idx x codebook threshold)]
      (when max-idx
-       (torch/index_select codebook 0 max-idx)))))
+       (py..
+           (torch/index_select codebook 0 max-idx)
+         (squeeze))))))
