@@ -173,7 +173,8 @@
 (def x-marker (memoize (fn [] (fhrr/seed))))
 (def y-marker (memoize (fn [] (fhrr/seed))))
 
-(defn spatial-semantic-pointer-2d
+;; 2d
+(defn spatial-semantic-pointer
   "Returns a spatical semantic pointer (SSP) for
   cartesian point [x y].
 
@@ -189,37 +190,37 @@
         a (fhrr/seed)
         b (fhrr/seed)
         ;; M = Obj ⊗ S
-        M (fhrr/bind a (spatial-semantic-pointer-2d p1))
+        M (fhrr/bind a (spatial-semantic-pointer p1))
         ;; M(objects,points) = superposition ( ... for obj in
         ;; objects bind(obj,point) )
         memory (fhrr/superposition
                 ;; a at p1
-                (fhrr/bind a (spatial-semantic-pointer-2d p1))
+                (fhrr/bind a (spatial-semantic-pointer p1))
                 ;; b at p3
-                (fhrr/bind b (spatial-semantic-pointer-2d p3)))]
+                (fhrr/bind b (spatial-semantic-pointer p3)))]
     ;; what is at point p1?
     ;;   ->    a
     [:what-is-at-point-p1
 
      (fhrr/dot-similarity (fhrr/unbind M
-                                       (spatial-semantic-pointer-2d p1))
+                                       (spatial-semantic-pointer p1))
                           (torch/cat [a b]))
      ;; 'mostly a' (funny!)
      :what-is-at-point-p2
      (fhrr/dot-similarity (fhrr/unbind M
-                                       (spatial-semantic-pointer-2d p2))
+                                       (spatial-semantic-pointer p2))
                           (torch/cat [a b]))
 
      ;; nothing
      :what-is-at-point-p3
      (fhrr/dot-similarity (fhrr/unbind M
-                                       (spatial-semantic-pointer-2d p3))
+                                       (spatial-semantic-pointer p3))
                           (torch/cat [a b]))
      ;; using the memory with b:
      ;;   ->  b
      :what-is-at-point-p3-mem
      (fhrr/dot-similarity (fhrr/unbind memory
-                                       (spatial-semantic-pointer-2d p3))
+                                       (spatial-semantic-pointer p3))
                           (torch/cat [a b]))])
 
 
@@ -232,9 +233,9 @@
 (defn spatial-semantic-region-integral
   "Computes the integral representation of a continuous region R.
 
-   Komer 2019 equation (5):
+   Komer 2019:
 
-   S(R) = ∫∫_{(x,y)∈R} X^x ⊗ Y^y dx dy
+     S(R) = ∫∫_{(x,y)∈R} X^x ⊗ Y^y dx dy    (5)
 
    Where:
    - X and Y are the basis vectors (x-marker and y-marker)
@@ -289,11 +290,9 @@
      ;; Scale by the area and number of samples
      (torch/mul sum-samples scaling-factor))))
 
-(defn spatial-semantic-region [& points]
+(defn points-region [& points]
   (fhrr/superposition
-   (map spatial-semantic-pointer-2d points)))
-
-;; representing an object occupying a location or region:
+   (map spatial-semantic-pointer points)))
 
 (comment
   (let [p1 [0 0]
@@ -302,38 +301,38 @@
         a (fhrr/seed)
         b (fhrr/seed)
         ;; M = Obj ⊗ S
-        M (fhrr/bind a (spatial-semantic-pointer-2d p1))
+        M (fhrr/bind a (spatial-semantic-pointer p1))
         ;; M(objects,points) = superposition ( ... for obj in
         ;; objects bind(obj,point) )
         memory (fhrr/superposition
                 ;; a at p1
-                (fhrr/bind a (spatial-semantic-pointer-2d p1))
+                (fhrr/bind a (spatial-semantic-pointer p1))
                 ;; b at p3
-                (fhrr/bind b (spatial-semantic-pointer-2d p3)))]
+                (fhrr/bind b (spatial-semantic-pointer p3)))]
     ;; what is at point p1?
     [:what-is-at-point-p1
      (fhrr/dot-similarity (fhrr/unbind M
-                                       (spatial-semantic-pointer-2d p1))
+                                       (spatial-semantic-pointer p1))
                           (torch/cat [a b]))
      ;; 'mostly a' (funny!)
      :what-is-at-point-p2
      (fhrr/dot-similarity (fhrr/unbind M
-                                       (spatial-semantic-pointer-2d p2))
+                                       (spatial-semantic-pointer p2))
                           (torch/cat [a b]))
      ;; nothing
      :what-is-at-point-p3
      (fhrr/dot-similarity (fhrr/unbind M
-                                       (spatial-semantic-pointer-2d p3))
+                                       (spatial-semantic-pointer p3))
                           (torch/cat [a b]))
      ;; using the memory with b:
      :what-is-at-point-p3-mem
      (fhrr/dot-similarity (fhrr/unbind memory
-                                       (spatial-semantic-pointer-2d p3))
+                                       (spatial-semantic-pointer p3))
                           (torch/cat [a b]))]))
 
 ;; --------------------------------------------------------------
 
-(defn spatial-semantic-memory-2d
+(defn spatial-semantic-memory
   "Returns a spatial semantic memory hd representing
   the objects standing for `obj-hdvs` at `points`.
 
@@ -346,7 +345,7 @@
   (fhrr/superposition
    (map
     (fn [s obj] (fhrr/bind s obj))
-    (map spatial-semantic-pointer-2d points)
+    (map spatial-semantic-pointer points)
     obj-hdvs)))
 
 (defn encode-grid
@@ -355,98 +354,72 @@
    Args:
      grid: 2D tensor with elements ranging from e.g. 0-9
      color-codebook: tensor of HDVs corresponding to numbers e.g. 0-9
+     [scale-x scale-y]: Default to grid size,
+      say how close the cells of the grids lie together in the encoding.
 
-   Returns:
-     Map containing:
-       :memory - the spatial semantic memory
-       :positions - list of [x,y] coordinates (0-1 normalized)
-       :numbers - list of numbers from the grid
-       :number-hdvs - corresponding HDVs from color-codebook
-       :grid-size - [height, width] of the original grid
+  When the scale is [1 1], all points (>= [0 0]) in the encoding will have some similarity.
+
    "
-  [grid color-codebook]
-  (let [ ;; Get grid dimensions
-        grid-shape (vec (py.. grid size))
-        [height width] grid-shape
-
-        ;; Create normalized coordinates between 0 and 1
-        ;; For a grid of size HxW, positions are:
-        ;; x: 0/(W-1), 1/(W-1), ..., (W-1)/(W-1)
-        ;; y: 0/(H-1), 1/(H-1), ..., (H-1)/(H-1)
-        x-coords (if (= width 1)
-                   [0.5]                ; Single column case
-                   (mapv #(/ % (- width 1)) (range width)))
-        y-coords (if (= height 1)
-                   [0.5]                ; Single row case
-                   (mapv #(/ % (- height 1)) (range height)))
-
-        ;; Generate all grid positions as [x,y] pairs
-        positions (for [i (range height)
-                        j (range width)]
-                    [(nth x-coords j) (nth y-coords i)])
-
-        ;; Flatten grid to get corresponding numbers
-        grid-flat (py.. grid (to :dtype torch/long) flatten)
-
-        number-hdvs (py/get-item color-codebook grid-flat)
-        memory (spatial-semantic-memory-2d positions number-hdvs)]
-    memory))
-
-
+  ([grid color-codebook]
+   (encode-grid grid
+                color-codebook
+                (mapv dec (vec (py.. grid size)))))
+  ([grid color-codebook [scale-x scale-y]]
+   (let [[height width] (vec (py.. grid size))
+         ;; Create normalized coordinates between 0 and 1, and
+         ;; scale
+         positions (for [i (range height)
+                         j (range width)]
+                     [(* (/ i (- width 1)) scale-x)
+                      (* (/ j (- height 1)) scale-y)])
+         ;; Get numbers from grid and index from the codebook
+         grid-flat (py.. grid (to :dtype torch/long) flatten)
+         number-hdvs (py/get-item color-codebook grid-flat)]
+     (spatial-semantic-memory positions number-hdvs))))
 
 (comment
   (def codebook (fhrr/seed 10))
-  (def mem (encode-grid
-            (torch/tensor
-             [[1 2 3]
-              [1 2 3]]
-             :dtype torch/float)
-            codebook))
-
-  (py/get-item
-   (torch/tensor [10 20 30 40])
-   (torch/tensor [1 2 3]))
-
-  (py..
-      (fhrr/dot-similarity
-       (fhrr/cleanup
+  (for [i (range 3)]
+    (for [j (range 3)]
+      [[i j]
+       (fhrr/cleanup-idx
         (fhrr/unbind
-         mem
-         (spatial-semantic-pointer-2d [0 0]))
-        codebook)
-       codebook)
-      (to :dtype torch/int)))
+         (encode-grid
+          (torch/tensor [[1 2 0]
+                         [3 0 0]
+                         [0 0 6]] :dtype torch/float)
+          codebook)
+         (spatial-semantic-pointer [i j]))
+        codebook)])))
 
 (comment
-
   (let [a (fhrr/seed)
         b (fhrr/seed)
         c (fhrr/seed)]
-    (spatial-semantic-memory-2d
-     [[0 0] [1 1] [2 2]]
-     [a b c]))
+    (fhrr/cleanup-idx
+     (query
+      (spatial-semantic-memory
+       [[0 0]
+        [0.5 0.5]
+        [1 1]
+        [2 2]]
+       [a a a b c])
+      (spatial-semantic-region-integral [[0 1] [0 1]]))
+     (torch/cat [a b c])))
+  (let [a (fhrr/seed)
+        b (fhrr/seed)
+        c (fhrr/seed)]
+    (fhrr/cleanup-idx
+     (query
+      (spatial-semantic-memory
+       [[0 0]
+        [0.5 0.5]
+        [1 1]
+        [2 2]]
+       [a c b b c])
+      (spatial-semantic-region-integral [[0.2 0.8] [0.2 0.8]]))
+     (torch/cat [a b c]))))
 
-  (let [codebook (fhrr/seed 10)
-        lut (atom {})
-        nextv (fn [] (py/get-item codebook (count @lut)))]
-    (def vsa-obj
-      (fn [o]
-        (when-not (get @lut o)
-          (swap! lut conj [o (nextv)]))
-        (get @lut o))))
-
-  (defn encode-grid [grid]
-
-    (for [[i row] (map-indexed vector grid)]
-      (for [[j elm] (map-indexed vector row)]
-        ;; point
-        [i j]
-        ;; obj
-        (vsa-obj elm))))
-
-  (def grid (torch/tensor [[0 1 2] [0 1 2] [0 1 2]]))
-
-  (encode-grid grid))
 
 (defn query
   "Like the query of a HD record.
@@ -454,15 +427,6 @@
   "
   [mem obj-or-region-location]
   (fhrr/unbind mem obj-or-region-location))
-
-(defn query-location [mem [x y]]
-  (fhrr/bind
-   mem
-   (spatial-semantic-pointer-2d [(- x) (- y)])))
-
-;; --------------------
-
-(defn query-region [mem points])
 
 (comment
   (let [a (fhrr/seed)
@@ -482,18 +446,321 @@
         a (fhrr/seed)
         b (fhrr/seed)
         memory
-        (spatial-semantic-memory-2d [p1 p2 p3]
-                                    [a (fhrr/seed) b])]
+        (spatial-semantic-memory [p1 p2 p3]
+                                 [a (fhrr/seed) b])]
     ;; memory
     [:what-is-at-point-p1
      (fhrr/dot-similarity (fhrr/unbind memory
-                                       (spatial-semantic-pointer-2d p1))
+                                       (spatial-semantic-pointer p1))
                           (torch/cat [a b]))
      ;; 'mostly a' (funny!)
      :what-is-at-point-p2
      (fhrr/dot-similarity (fhrr/unbind memory
-                                       (spatial-semantic-pointer-2d p2))
+                                       (spatial-semantic-pointer p2))
                           (torch/cat [a b])) :what-is-at-point-p3
      (fhrr/dot-similarity (fhrr/unbind memory
-                                       (spatial-semantic-pointer-2d p3))
+                                       (spatial-semantic-pointer p3))
                           (torch/cat [a b]))]))
+
+;; ------------------------------
+
+;; diserderata
+
+;; Capacity
+;; How many object can be encoded into M and a targed object succesfully decoded
+
+;; Query single object
+(defn query-object* [mem obj]
+  (query mem obj))
+
+(defn location-codebook
+  "Returns a codebook of the grid position hdvs like by [[spatial-semantic-pointer]].
+  "
+  [{:keys [width height resolution]}]
+  (let [width (or width 1)
+        height (or height 1)
+        resolution (or resolution 0.1)
+        x-coords
+        (torch/arange 0 (+ width 0.01) resolution :device *torch-device*)
+        y-coords
+        (torch/arange 0 (+ height 0.01) resolution :device *torch-device*)
+        [y-grid x-grid]
+        (torch/meshgrid y-coords x-coords :indexing "ij")
+        x-flat (py.. x-grid flatten)
+        y-flat (py.. y-grid flatten)
+        x-powers (fractional-power-encoding
+                  ;; [1, dimensions]
+                  (py.. (x-marker) (unsqueeze 0))
+                  ;; [num_points, 1]
+                  (py.. x-flat (unsqueeze 1)))
+        y-powers (fractional-power-encoding
+                  ;; [1, dimensions]
+                  (py.. (y-marker) (unsqueeze 0))
+                  ;; [num_points, 1]
+                  (py.. y-flat (unsqueeze 1)))
+        ;; Bind to get all SSPs: [num_points, dimensions]
+        all-ssps (fhrr/bind x-powers y-powers)]
+    {:codebook all-ssps
+     :y-positions y-flat
+     :x-positions x-flat}))
+
+(comment
+  (torch/arange 0 (+ 2 0.01) 0.1))
+
+
+(defn readout
+  "Returns a [x y] position decoded from a 2d spatial semantic pointer ssp.
+
+   This is a drop-in replacement for the original readout function
+   that uses efficient tensor operations instead of map/for loops.
+
+   Args:
+     ssp: spatial semantic pointer to decode
+     opts: map with keys:
+       - :width - width of the space
+       - :height - height of the space
+       - :resolution - grid resolution (default 0.1)
+       - :threshold - similarity threshold (default 0.1)
+
+   Returns:
+     [x y] position that best matches the input SSP
+  "
+  [ssp {:keys [width height resolution threshold] :as opts}]
+  (let [{:keys [codebook y-positions x-positions]}
+        (location-codebook opts)]
+    (when-let [idx (fhrr/cleanup-idx ssp codebook (or threshold 0.1))]
+      [(py.. (py/get-item x-positions idx) item)
+       (py.. (py/get-item y-positions idx) item)])))
+
+(defn readout-multi
+  "Decodes multiple [x y] positions from a 2d spatial semantic pointer `ssp`.
+
+   This is useful when the SSP is a superposition of multiple locations,
+   such as when querying for an object that appears at multiple positions.
+
+   Args:
+     ssp: spatial semantic pointer (potentially a superposition)
+     opts: map with keys:
+       - :width - width of the space
+       - :height - height of the space
+       - :resolution - grid resolution (default 0.1)
+       - :threshold - similarity threshold (default 0.1)
+
+   Returns:
+     Vector of [x y] positions where similarity exceeds threshold,
+     or empty vector if no positions found.
+  "
+  [ssp {:keys [width height resolution threshold]}]
+  (let [threshold (or threshold 0.1)
+        resolution (or resolution 0.1)
+        {:keys [codebook y-positions x-positions]}
+          (location-codebook
+            {:height height :resolution resolution :width width})
+        similarities (py.. (fhrr/similarity ssp codebook) (squeeze))
+        above-threshold (torch/gt similarities threshold)
+        idxs (torch/nonzero above-threshold)]
+    (torch/cat [(py/get-item x-positions idxs)
+                (py/get-item y-positions idxs)]
+               :dim
+               1)))
+
+
+(comment
+
+  (let [a (fhrr/seed)
+        b (fhrr/seed)
+        c (fhrr/seed)]
+    (readout*
+     (spatial-semantic-pointer [0 0])
+     {:height 2 :resolution 0.2 :width 2}))
+
+  (let [a (fhrr/seed)
+        b (fhrr/seed)
+        c (fhrr/seed)]
+
+    (spatial-semantic-memory [[0 0] [0.5 0.5] [1 1]
+                              [2 2] [3 3]]
+                             [a a a b c])
+
+    (fhrr/cleanup-idx
+     (query-object* (spatial-semantic-memory [[0 0] [0.5 0.5] [1 1]
+                                              [2 2] [3 3]]
+                                             [a a a b c])
+                    c)
+     (torch/cat [(spatial-semantic-pointer [0 0])
+                 (spatial-semantic-pointer [1 1])
+                 (spatial-semantic-pointer [2 2])
+                 (spatial-semantic-pointer [3 3])]))))
+
+;; Query missing object
+;; Indicate if an object is not present when queried
+(defn query-object
+  "Query the spatial memory `mem` with `obj` hd.
+
+  In the first form, query the location hdv raw.
+
+
+  In the second form,
+  reuturns nil, if the object is not present.
+
+  otherwise returns data:
+
+  returns {:location location-ssp :redout-pos [x y]}
+
+  Multi object case:
+
+  Observe that location-ssp is the superposition
+  of the locations of the object.
+
+  "
+  ([mem obj] (query-object* mem obj))
+  ([mem obj {:keys [width height resolution threshold] :as opts}]
+   (let [loc (query-object* mem obj)
+         pos (readout loc opts)]
+     (when pos {:location loc :redout-pos pos}))))
+
+;; Query duplicate object
+;; - already the case for query-object and query-object*
+
+(comment
+  (time (let [a (fhrr/seed)
+              b (fhrr/seed)
+              c (fhrr/seed)
+              mem (spatial-semantic-memory [[0 0] [0.5 0.5] [1 1] [2 2] [3 3]]
+                                           [a b a b c])
+              {:keys [location readout-pos]}
+              (query-object mem a {:height 3 :width 3})]
+          (readout-multi location
+                         {:height 3 :resolution 0.5 :threshold 0.9 :width 3})))
+  ;; tensor([[0., 0.],
+  ;;         [1., 1.]])
+  )
+
+
+;; Query location
+
+#_(defn query-location [mem point]
+    (query mem (spatial-semantic-pointer point)))
+
+(defn query-location
+  "Returns an hdv representing the object at location [x y]
+  on spatial semantic memory `mem`."
+  [mem [x y]]
+  (fhrr/bind mem (spatial-semantic-pointer [(- x) (- y)])))
+
+(comment
+  (let [a (fhrr/seed)
+        b (fhrr/seed)
+        c (fhrr/seed)]
+    (fhrr/cleanup-idx (query-location
+                       (spatial-semantic-memory
+                        [[0 0] [0.5 0.5] [1 1] [2 2]]
+                        [a b b c])
+                       [1 1])
+                      (torch/cat [a b c]))))
+
+;; region represenation
+(def region spatial-semantic-region-integral)
+
+;; Query Region
+(defn query-region [mem region-bounds]
+  (query mem (region region-bounds)))
+
+;; Shif single object in Group
+;; Change the position of a single object without decoding M
+
+(defn shift
+  "Returns a new spatial semantic memory
+  where the position of `obj` is shifted by [dx dy].
+  "
+  [mem obj [dx dy]]
+  (let [l*obj (fhrr/bind (query-object* mem obj) obj)
+        delta-ssp (spatial-semantic-pointer [dx dy])
+        delta-mem (fhrr/bind l*obj delta-ssp)]
+    (-> (fhrr/superposition [mem (fhrr/negative l*obj) delta-mem])
+        (fhrr/normalize))))
+
+(comment
+  (let [a (fhrr/seed)
+        b (fhrr/seed)
+        c (fhrr/seed)
+        d (fhrr/seed)
+        mem
+        (spatial-semantic-memory
+         [[0 0]
+          [0 1]
+          [0.5 0.5]
+          [1 1]]
+         [a b c d])
+        mem-shifted
+        (shift mem b [1 1])]
+    (readout
+     (query-object mem-shifted b)
+     {:width 2 :height 2 :resolution 0.5}))
+  [1.0 2.0])
+
+;; Shift whole group
+;; Change hte position of all objects in M similarly
+(defn shift-group
+  "Returns a spatial semantic memory representing `mem` shifted by
+  [dx dy].
+  "
+  [mem [dx dy]]
+  ;;
+  ;; Utilizing
+  ;;
+  ;; eqn. 3 Komer 2019:
+  ;; x-marker^k1 ⊙ x-marker^k2 = x-marker^(k1 + k2)
+  ;;
+  ;;
+  ;;
+  (let [delta-ssp (spatial-semantic-pointer [dx dy])]
+    (fhrr/bind mem delta-ssp)))
+
+(comment
+
+  (let [a (fhrr/seed)
+        b (fhrr/seed)
+        c (fhrr/seed)
+        d (fhrr/seed)
+        mem (spatial-semantic-memory [[0 0] [0 1] [0.5 0.5] [1 1]]
+                                     [a b c d])]
+    [(readout (query-object* (shift-group mem [1 1]) a)
+              {:height 2 :resolution 0.2 :threshold 0.1 :width 2})
+     (readout (query-object* (shift-group mem [1 1]) b)
+              {:height 2 :resolution 0.2 :threshold 0.1 :width 2})
+     (readout (query-object* (shift-group mem [1 1]) c)
+              {:height 2 :resolution 0.2 :threshold 0.1 :width 2})
+     (readout (query-object* (shift-group mem [1 1]) d)
+              {:height 2 :resolution 0.2 :threshold 0.1 :width 2})])
+  [[1.0 1.0] [1.0 2.0] [1.600000023841858 1.399999976158142] [2.0 2.0]])
+
+
+;; Readout (x,y) location from SSP
+
+#_(defn readout
+    "Returns a [x y] position decoded from a 2d spatial semantic pointer ssp."
+    [ssp [width height] resolution]
+    (let [positions
+          (into []
+                cat
+                (for [x (range 0 width resolution)]
+                  (for [y (range 0 height resolution)] [x y])))
+          codebook
+          (torch/stack (mapv spatial-semantic-pointer positions))]
+      (nth
+       positions
+       (fhrr/cleanup-idx ssp codebook))))
+
+;; Removed duplicate readout function - using the one defined earlier
+
+(comment
+  (readout (spatial-semantic-pointer [0.5 0.5]) {:width 2 :height 2 :resolution 0.2})
+  [0.4000000059604645 0.4000000059604645]
+  (time (readout
+         (spatial-semantic-pointer [0.5 0.5])
+         {:width 2 :height 2 :resolution 0.1}))
+  [0.5 0.5]
+  ;; It is dangerous to use small resolution. OOM !!
+
+  )

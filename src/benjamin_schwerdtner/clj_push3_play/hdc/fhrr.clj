@@ -259,6 +259,13 @@
      ;; Return cosine similarity
      (torch/div (dot-similarity x others) magnitude))))
 
+(defn similarity
+  "Dot similarity scaled to dimensions."
+  [x others]
+  (torch/div
+   (dot-similarity x others)
+   (:fhrr/dimensions *opts*)))
+
 ;; Helper functions for convenience and API consistency
 
 ;; (defn empty
@@ -300,6 +307,14 @@
 
 ;; Cleanup function for unbinding
 
+(defn cleanup-idx
+  ([x codebook] (cleanup-idx x codebook nil))
+  ([x codebook threshold]
+   (let [similarities (similarity x codebook)
+         max-idx (torch/argmax similarities)
+         sim (py.. (torch/index_select similarities 0 max-idx) item)]
+     (when (or (not threshold) (<= threshold sim)) max-idx))))
+
 (defn cleanup
   "Clean up a hypervector by finding the closest match from a codebook.
 
@@ -311,7 +326,8 @@
 
   Returns:
     The hypervector from codebook with highest cosine similarity to x"
-  [x codebook]
-  (let [similarities (cosine-similarity x codebook)
-        max-idx (torch/argmax similarities)]
-    (py.. codebook (index_select 0 max-idx))))
+  ([x codebook] (cleanup x codebook nil))
+  ([x codebook threshold]
+   (let [max-idx (cleanup-idx x codebook threshold)]
+     (when max-idx
+       (torch/index_select codebook 0 max-idx)))))

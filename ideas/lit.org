@@ -1,3 +1,7 @@
+* Modelling the emergence of open-ended technological evolution
+
+https://arxiv.org/abs/2508.04828
+
 * Multiobjective evolutionary algorithms MOEAs
 
 - problem with several conflicting objective and pareto optimal solutions
