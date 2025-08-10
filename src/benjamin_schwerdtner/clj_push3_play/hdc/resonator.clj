@@ -39,7 +39,6 @@
 
 ;; [[benjamin-schwerdtner.hdc.data/bound-seq]]
 
-
 ;;
 ;; The reference factorizer implementation
 (defn exhaustive-search-factorize
@@ -69,6 +68,9 @@
    (apply cartesian-product books)
    (some
     (fn [hdvs] (when (hd/similar? x (hdd/bind-seq hdvs)) hdvs)))))
+
+
+
 
 (comment
 
@@ -104,8 +106,6 @@
 ;; Neural Computation 32, 2311-2331 (2020)
 
 ;; https://arxiv.org/abs/2007.03748
-
-
 
 
 

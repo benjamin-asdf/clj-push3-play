@@ -127,11 +127,29 @@
   Strictly speaking this is approximate, but when the vectors are unitary, like by [[fhrr/seed]],
   it is the true inverse.
 
+
+  Also, like with exponents in R:
+
+
+  3) x^0  = `ones` ; 1
+
+  4) x^1  = x
+
+  5) x^-1 = inverse(x) ; 1/x
+
+  6) x^k1 * x^k2 = x^(k1 + k2)
+
+  where
+
+    ^ is fractional-power-encoding or power
+    * is bind or multiply
+
   "
   [x k]
   ;; Convert k to tensor if needed, with intelligent shape
   ;; handling
-  (let [k-tensor
+  (let [x (torch/reshape x [-1 (:fhrr/dimensions fhrr/*opts*)])
+        k-tensor
         (cond (number? k) (torch/tensor [k]
                                         :device *torch-device*
                                         :dtype torch/float32)
@@ -141,11 +159,26 @@
               :else (py.. k (to :dtype torch/float32)))
         ;; Get the phase angles of the complex numbers
         angles (torch/angle x)
-        k-tensor (py.. k-tensor (unsqueeze 1))
-        scaled-angles (torch/mul angles k-tensor)
+        scaled-angles
+        ;; supporting batch
+        ;; b: batch-dim , d: hyperdim, x: value-dim
+        (torch/einsum "bd,x->bxd" angles k-tensor)
+        ;; (torch/mul angles k-tensor)
         result (torch/complex (torch/cos scaled-angles)
                               (torch/sin scaled-angles))]
     result))
+
+(comment
+  (def x (fhrr/seed 2))
+  (def sp (fractional-power-encoding
+           x
+           (torch/tensor [1 2 3])))
+  (fhrr/similarity
+   (py/get-item sp [0 0])
+   (fractional-power-encoding (py/get-item x 0) 1))
+  (fhrr/similarity
+   (py/get-item sp [1 0])
+   (fractional-power-encoding (py/get-item x 1) 1)))
 
 (def fpe fractional-power-encoding)
 
