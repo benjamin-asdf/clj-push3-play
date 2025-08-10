@@ -1,1 +1,2 @@
-{:deps {clj-python/libpython-clj {:mvn/version "2.025"}}}
+{:deps {clj-python/libpython-clj {:mvn/version "2.025"}
+        org.clojure/math.combinatorics {:mvn/version "0.3.0"}}}

@@ -103,10 +103,9 @@
   Returns:
     Single bundled hypervector with shape [..., dimensions]"
   [xs]
-  (let [xs (if (seq? xs) (torch/cat (vec xs)) xs)]
-    (->
-     (torch/sum xs :dim -2)
-     (torch/reshape [-1 (:fhrr/dimensions *opts*)]))))
+  (let [xs (if (coll? xs) (torch/cat (vec xs)) xs)
+        xs (torch/reshape xs [-1 (:fhrr/dimensions *opts*)])]
+    (torch/sum xs :dim -2)))
 
 (defn superposition
   "Return the superposition of the hypervectors using element-wise sum.
@@ -125,7 +124,6 @@
   ([x y] (torch/add x y)))
 
 (def bundle superposition)
-
 
 (defn bind
   "Bind hypervectors using element-wise multiplication.
@@ -151,9 +149,9 @@
   Returns:
     Single bound hypervector with shape [..., dimensions]"
   [xs]
-  (->
-   (torch/prod xs :dim -2)
-   (torch/reshape [-1 (:fhrr/dimensions *opts*)])))
+  (let [xs (if (coll? xs) (torch/cat (vec xs)) xs)
+        xs (torch/reshape xs [-1 (:fhrr/dimensions *opts*)])]
+    (torch/prod xs :dim -2)))
 
 (defn inverse
   "Invert the hypervector for binding.
@@ -262,9 +260,12 @@
 (defn similarity
   "Dot similarity scaled to dimensions."
   [x others]
-  (torch/div
-   (dot-similarity x others)
-   (:fhrr/dimensions *opts*)))
+  (let [others (if (coll? others) (torch/cat (vec others)) others)]
+    (torch/div
+     (dot-similarity x others)
+     (:fhrr/dimensions *opts*))))
+
+
 
 ;; Helper functions for convenience and API consistency
 
@@ -336,17 +337,18 @@
            (torch/index_select codebook 0 max-idx)
          (squeeze))))))
 
-(defn cleanup-batch
-  "Clean up a hypervector by finding the closest match from a codebook.
 
-  This is useful after unbinding operations to recover clean symbolic vectors.
+;; -------------------
 
-  Args:
-    x: noisy hypervector to clean up
-    codebook: collection of clean hypervectors
+(defn similar?
+  ([a b] (similar? a b 0.95))
+  ([a b threshold]
+   (<= threshold (py.. (similarity a b) (squeeze) (item)))))
 
-  Returns:
-    The hypervector from codebook with highest cosine similarity to x"
-  ([x codebook] (cleanup x codebook nil))
-  ([x codebook threshold]
-   ))
+
+
+(comment
+  (py..
+      (similarity (seed) (seed))
+      (squeeze)
+      (item)))
