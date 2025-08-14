@@ -94,19 +94,6 @@
 
 (def seed random)
 
-(defn multibundle
-  "Bundle multiple hypervectors along the second-to-last dimension.
-
-  Args:
-    xs: tensor of hypervectors with shape [..., num-vectors, dimensions]
-
-  Returns:
-    Single bundled hypervector with shape [..., dimensions]"
-  [xs]
-  (let [xs (if (coll? xs) (torch/cat (vec xs)) xs)
-        xs (torch/reshape xs [-1 (:fhrr/dimensions *opts*)])]
-    (torch/sum xs :dim -2)))
-
 (defn superposition
   "Return the superposition of the hypervectors using element-wise sum.
 
@@ -120,7 +107,11 @@
   Returns:
     Bundled hypervector (x + y)"
   ([xs]
-   (multibundle xs))
+   (let [xs (if (coll? xs)
+              (-> (torch/cat (vec xs))
+                  (torch/reshape [-1 (:fhrr/dimensions *opts*)]))
+              xs)]
+     (torch/sum xs :dim -2)))
   ([x y] (torch/add x y)))
 
 (def bundle superposition)
@@ -137,21 +128,13 @@
 
   Returns:
     Bound hypervector (x * y)"
-  [x y]
-  (torch/mul x y))
-
-(defn multibind
-  "Bind multiple hypervectors along the second-to-last dimension.
-
-  Args:
-    xs: tensor of hypervectors with shape [..., num-vectors, dimensions]
-
-  Returns:
-    Single bound hypervector with shape [..., dimensions]"
-  [xs]
-  (let [xs (if (coll? xs) (torch/cat (vec xs)) xs)
-        xs (torch/reshape xs [-1 (:fhrr/dimensions *opts*)])]
-    (torch/prod xs :dim -2)))
+  ([xs]
+   (let [xs (if (coll? xs)
+              (-> (torch/cat (vec xs))
+                  (torch/reshape [-1 (:fhrr/dimensions *opts*)]))
+              xs)]
+     (torch/prod xs :dim -2)))
+  ([x y] (torch/mul x y)))
 
 (defn inverse
   "Invert the hypervector for binding.
@@ -265,8 +248,6 @@
      (dot-similarity x others)
      (:fhrr/dimensions *opts*))))
 
-
-
 ;; Helper functions for convenience and API consistency
 
 ;; (defn empty
@@ -334,9 +315,8 @@
    (let [max-idx (cleanup-idx x codebook threshold)]
      (when max-idx
        (py..
-           (torch/index_select codebook 0 max-idx)
-         (squeeze))))))
-
+        (torch/index_select codebook 0 max-idx)
+        (squeeze))))))
 
 ;; -------------------
 
@@ -345,10 +325,8 @@
   ([a b threshold]
    (<= threshold (py.. (similarity a b) (squeeze) (item)))))
 
-
-
 (comment
   (py..
-      (similarity (seed) (seed))
-      (squeeze)
-      (item)))
+   (similarity (seed) (seed))
+   (squeeze)
+   (item)))
