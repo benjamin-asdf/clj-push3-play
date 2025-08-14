@@ -15,7 +15,7 @@
 ;;
 ;; Conceptual Hyperpsace (CH) is a CST implemented using HDC.
 ;;
-;; https://arxiv.org/html/2411.08684v1
+;; https://arxiv.org/abs/2411.08684
 ;;
 ;; CST: Conceptual Spaces Theory
 ;; https://en.wikipedia.org/wiki/Conceptual_space
