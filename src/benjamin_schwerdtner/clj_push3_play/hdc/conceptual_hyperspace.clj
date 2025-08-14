@@ -8,6 +8,8 @@
    [libpython-clj2.python :refer [py. py..] :as py]
    [libpython-clj2.require :refer [require-python]]))
 
+
+
 ;;
 ;; =================================================================
 ;;
@@ -138,10 +140,8 @@
   ;;
   ;; dim(p) == count(bases) == k
   ;;
-  (hd/multibind
+  (hd/bind
    (map-indexed (fn [idx v] (ssp/fractional-power-encoding (bases idx) v)) p)))
-
-
 
 ;; =====================================
 
@@ -162,9 +162,6 @@
   ;; ---------------------------------------
 
 
-
-
-
   )
 
 ;; ----------------------
@@ -175,8 +172,6 @@
   ;; output F
   ;;
   )
-
-
 
 
 ;;
@@ -242,6 +237,9 @@
         basis-seeds (or basis-seeds (hd/seed k))]
     (ssp/fractional-power-encoding basis-seeds values)))
 
+
+
+
 (comment
   (py..
       (bases-codebooks {:k 3 :resolution 0.5 :high 10 :low -10})
@@ -249,14 +247,11 @@
   ;; torch.Size([3, 41, 10000])
   ;; -----------
 
-
   (def a (hd/seed))
 
   (hd/similarity
    (ssp/fractional-power-encoding a 0)
    (hd/ones))
-
-
 
 
   ;; ------------------------
