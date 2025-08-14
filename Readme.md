@@ -155,7 +155,15 @@ https://arxiv.org/abs/2411.08684
 - Implement [HDC/VSA](https://www.hd-computing.com/) operators.
 - Figure out a hyper dimensional representation of push code so that the same program can be target of 
   symbolic and neural / subsymbolic algorithms.
-  
-  
-  
 
+# Development
+
+
+
+## Run tests
+
+The python path needs to be set, then run `clj -X:test`. 
+
+``` shell
+./run.sh  -X:test
+``` 
