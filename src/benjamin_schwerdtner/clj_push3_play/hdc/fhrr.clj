@@ -118,6 +118,7 @@
 
 (defn bind
   "Bind hypervectors using element-wise multiplication.
+  (Hadamard product).
 
   This produces a hypervector dissimilar to both inputs.
   Binding is used to associate information, for instance, to assign values to variables.
@@ -291,8 +292,7 @@
 (defn cleanup-idx
   ([x codebook] (cleanup-idx x codebook nil))
   ([x codebook threshold]
-   (let [x (py.. x (squeeze))
-         similarities (similarity x codebook)
+   (let [similarities (similarity x codebook)
          max-idx (torch/argmax similarities)]
      (if-not threshold
        max-idx
@@ -330,3 +330,8 @@
    (similarity (seed) (seed))
    (squeeze)
    (item)))
+
+
+;; (def ⊗ bind)
+;; (def ⊘ unbind)
+;; (def ⊗ superposition)

@@ -85,138 +85,21 @@
 ;;
 ;; Where xi, yj, zk are drawn from codebooks
 ;;
-;; X = { x1, ..., xD }, Y = {  }
+;; X = { x1, ..., xD }, etc.
 ;;
-;; e.g. D = 100
-;;
+;; I call `D` the codebook resolution.
+;; e.g.
+;; D = 100
 
 ;;
 ;; The resonator combines superposition and cleanup
 ;;
+
 ;;
-
-(def ⊙ hd/bind)
-
-;; references:
-
+;; reference impl:
+;;
 ;; https://github.com/spencerkent/resonator-networks/blob/master/resonator_networks/dynamics/rn_numpy.py#L7
 ;;
-
-#_(defn resonator-step-fhrr
-  "
-
-
-  shapes:
-
-  - target: (d)
-  - books: (n, m, d)
-  - estimates: (n, d)
-  - output: (n, d)
-
-
-
-  d: hdv dimension
-  n: books/ factors count
-  m: book resolution
-
-  "
-  [target books estimates]
-  (let [n (py.. estimates (size -2))
-        estimates (py.. estimates (unsqueeze 0))
-
-        ;;
-        ;; x-estimate(t + 1) = g(XX^T(s ⊙ y-estimate(t) ⊙ z-estimate(t) )
-        ;;
-        ;;                                |_____________________________|
-        ;;                                       inv-other^-1               <- 1
-        ;;
-        ;;
-        ;;                           |___________________________________|
-        ;;                              new-estimate                        <- 2
-        ;;                              x-hat
-        ;;
-        ;;
-        ;;                  |________|                                      <- 3
-        ;;
-        ;; ======================
-        inv-estimates (hd/inverse estimates)
-        ;;
-        ;; now find the 'other' hdvs for each hdv
-        ;;
-        ;; [
-        ;;   [z y]     <- x
-        ;;   [x z]     <- y
-        ;;   [x y]     <- z
-        ;;          ]
-        inv-estimates
-        (->
-         (reduce
-          (fn [rolled i]
-            (into rolled (py.. inv-estimates (roll i -2))))
-          []
-          (range 1 n))
-         (torch/stack :dim -2))
-        ;;
-        ;; bind the 'other' estimates togther
-        ;;
-        ;; x-inv-others: y^-1 ⊙ z^-1
-        ;; shape:
-        ;; (n, d)
-        ;;                                                     <-  1
-
-        ;; _ (def inv-estimates-1 inv-estimates)
-        inv-others (hd/bind inv-estimates)
-        _ (def inv-others-1 inv-others)
-        ;;
-        ;;
-        ;; now bind with the input, the closer we are to the solution,
-        ;; the closer x-hat to x
-        ;; (because unbinding target with the other estimates produces x)
-        ;;
-        ;;
-        ;; [
-        ;;   x-hat  =  s ⊙ (y^-1 ⊙ z^-1)
-        ;;   y-hat     ...
-        ;;   z-hat
-        ;;    ]
-        _ (def target target)
-        _ (def inv-others inv-others)
-        new-estimates (hd/bind target inv-others)
-        ;; new-estimates (py.. new-estimates (unsqueeze 0))
-        ;;                                                      <- 2
-        ;;
-        ;;
-        ;; cleanup new estimates with codebooks
-        ;; outer matrix product:
-        ;;
-        ;; XX^T * x-hat
-        ;;
-        _ (def new-estimates new-estimates)
-        _ (def books books)
-
-        ;; how close each estimate is to each vec in it's codebook ('attention')
-        attention
-        (torch/einsum "nd,nmd->n" new-estimates (torch/conj books))
-        _ (def attention attention)
-
-        ;;
-        ;; return a hdv superposition, scaled by the (attention) closeness value
-        ;; if x-hat is very close to x, then outputs[0] ~= x
-        ;;
-        outputs-1
-        (torch/einsum "n,nmd->nd" attention books)
-        ;; g activation function
-        ;;
-        ;; x-estimate = g(XX^T * x-hat)
-        ;;
-        g torch/sgn
-        outputs (g outputs-1)
-        ;;                                                    <- 3
-        ]
-    _ (def outputs outputs)
-    outputs))
-
-
 (defn resonator-step-fhrr
   "Returns new estimates for factorizing `target`, performs a resonator step with `books`.
 
@@ -231,45 +114,66 @@
   n: books/ factors count
   m: book resolution
 
-  Each new estimate is given by the equivalent of:
-
+  Each new estimate is given by the equivalent of this (for x):
 
   x-estimate(t + 1) = g(XX^T(s ⊙ y-estimate(t)^-1 ⊙ z-estimate(t)^-1 ))
 
 
   ⊙ is bind
   ^-1 is inverse
+  s is the input / target (to be factorized)
+
 
   So for each factor,
 
-  - unbind with the bind of the other factor estimates, yielding the current new-estimate
-  - perform a cleanup with the given book, using the outer matrix product of the book
-  - This step is conceptually similar to a Hopfield Net
-
-  -
+  - unbind with the 'other factor' estimates, yielding an estimate of the factor.
+  - perform a cleanup with the given book, using the outer matrix product of the book.
+  - This step is conceptually similar to a Hopfield Net.
+  - Normalize outputs with an activation function `g`, prevent run away effects.
 
   "
   [target books estimates]
   (let [estimates (torch/unsqueeze estimates 0)
-        inv-estimates (hd/inverse estimates)
         n (py.. estimates (size -2))
-        inv-others (-> (reduce (fn [rolled i]
-                                 (into rolled
-                                       (py.. inv-estimates
-                                         (roll i -2))))
-                               []
-                               (range 1 n))
-                       (torch/stack :dim -2))
-        inv-others (hd/bind inv-others)
-        new-estimates (hd/bind target inv-others)
-        activations
-        (torch/einsum "bd,bkd->bk" new-estimates (torch/conj books))
-        ;; patterns
-        outputs (torch/einsum "bk,bkd->bd" activations books)
-        ;; activation function g(patterns)
-        outputs (torch/sgn outputs)]
+        ;; ----------------------
+        ;;
+        ;; 1. For each factor, find the
+        ;; other factors and bind them
+        others (-> (reduce (fn [rolled i]
+                             (into rolled
+                                   (torch/roll estimates i -2)))
+                           []
+                           (range 1 n))
+                   ;; shape: (n,n-1,d)
+                   (torch/stack :dim -2)
+                   ;; shape: (n,d)
+                   (hd/bind))
+        ;; -----------------------------
+        ;;
+        ;; 2.
+        ;; e = s ⊙ others^-1
+        ;; shape: (n,d)
+        new-estimate (hd/bind target (hd/inverse others))
+        ;; -----------------------------
+        ;;
+        ;; 3.
+        ;; pattern = XX^T(e)
+        ;; Cleanup / autoassociative part. Scale the output
+        ;; pattern by it's similarity (activation).
+        ;;
+        ;; attn = e*X^T activations | similarity | attention
+        ;; Like address decoder neuron activations
+        ;; shape: (n)
+        attn
+          (torch/einsum "nd,nmd->nm" new-estimate (torch/conj books))
+        pattern (torch/einsum "nm,nmd->nd" attn books)
+        ;; ----------------------------
+        ;;
+        ;; 4. non linearity | act | normalize
+        ;; out = g(pattern)
+        ;; using g = sgn
+        outputs (torch/sgn pattern)]
     outputs))
-
 
 (defn resonator-fhrr
   "Perform a resonator factorization of `x` with `books`.
@@ -301,18 +205,27 @@
   ([x books] (resonator-fhrr x books {}))
   ([x books
     {:keys [max-iterations similarity-threshold]
-     :or {max-iterations 13 similarity-threshold 0.5}}]
+     :or {max-iterations 13 similarity-threshold 0.9}}]
    (let [initial-estimates (hd/superposition books)
          finish-info
            (fn [{:keys [n-iteration estimates]}]
              (cond (hd/similar? x
                                 (hd/normalize (hd/bind estimates))
                                 similarity-threshold)
-                     {:factors (mapv (fn [x book] (hd/cleanup x book))
+                     (let [factor-idxs
+                             (torch/stack
+                               (mapv (fn [x book]
+                                       (hd/cleanup-idx x book))
                                  estimates
-                                 books)
-                      :finish-reason :factorized
-                      :success? true}
+                                 books))]
+                       {:factor-idxs factor-idxs
+                        :factors (into []
+                                       (map (fn [idx b]
+                                              (py/get-item b idx))
+                                         factor-idxs
+                                         books))
+                        :finish-reason :factorized
+                        :success? true})
                    (< max-iterations n-iteration)
                      {:finish-reason :max-iterations-reached
                       :success? false}
@@ -324,385 +237,4 @@
          (recur {:estimates (resonator-step-fhrr x books estimates)
                  :n-iteration (inc n-iteration)}))))))
 
-
-
-
-
-
-
-
-(comment
-
-
-  (do
-    (def books
-      (torch/stack
-       [(hd/seed 3)
-        (hd/seed 3)
-        (hd/seed 3)]))
-    (def n (py.. books (size -2)))
-    (def a (py/get-item books [0 0]))
-    (def b (py/get-item books [1 0]))
-    (def c (py/get-item books [2 0]))
-    (def x (hd/bind [a b (py.. (hd/seed) (squeeze))]))
-    (def ests (resonator-step-fhrr x books (hd/superposition books)))
-
-    [
-     (hd/similarity a ests)
-     (hd/similarity b ests)
-     (hd/similarity c ests)]
-
-    (hd/similarity x (hd/normalize (hd/bind ests))))
-
-
-
-
-  (do (def books (torch/stack [(hd/seed 3) (hd/seed 3) (hd/seed 3)]))
-      (def a (py/get-item books [0 0]))
-      (def b (py/get-item books [1 0]))
-      (def c (py/get-item books [2 0]))
-      ;; (def x (hd/bind [a b (py.. (hd/seed) (squeeze))]))
-      (def x (hd/bind [a b c]))
-      (def x-query
-        (hd/normalize (hd/superposition [x
-                                         (py.. (hd/seed) (squeeze))
-                                         ;; (py.. (hd/seed) (squeeze))
-                                         ;; (py.. (hd/seed) (squeeze))
-                                         ])))
-      (hd/similarity x (hd/bind (:estimates (resonator-fhrr x-query books))))
-
-      (hd/similarity
-       x
-       (hd/bind
-        (map
-         (fn [x book] (hd/cleanup x book))
-         (:estimates (resonator-fhrr x-query books))
-         books))))
-
-
-  (do (def books (torch/stack [(hd/seed 3) (hd/seed 3) (hd/seed 3)]))
-      (def a (py/get-item books [0 0]))
-      (def b (py/get-item books [1 0]))
-      (def c (py/get-item books [2 0]))
-      (def x (hd/bind [a b c]))
-      (def x-query
-        (hd/normalize (hd/superposition [x
-                                         (py.. (hd/seed) (squeeze))
-                                         ;; (py.. (hd/seed) (squeeze))
-                                         ;; (py.. (hd/seed) (squeeze))
-                                         ])))
-      (resonator-fhrr x-query books))
-
-
-
-  (hd/similarity
-   (hd/cleanup-many outputs books)
-   books))
-
-
-
-
-
-(comment
-  ;; torch.Size([1, 2, 10000])
-
-  (let [X (hd/seed 2)
-        a (py.. (py/get-item X 0) (unsqueeze 0))
-        activations (torch/einsum "ij,kj->ik" a (torch/conj X))
-        outputs (torch/einsum "ik,kj->ij" activations X)
-        outputs (torch/sgn outputs)
-        ]
-    activations
-    (py.. outputs (size))
-    (hd/cleanup a outputs)
-    (hd/similarity a outputs)
-    (hd/similarity a X)
-    (hd/similarity outputs X))
-
-
-
-
-  (let [X (hd/seed 2)
-        a (py.. (py/get-item X 0) (unsqueeze 0))
-        ;; a (hd/superposition a (hd/seed))
-        a (hd/seed)
-        activations (torch/einsum "ij,kj->ik" a (torch/conj X))
-        outputs (torch/einsum "ik,kj->ij" activations X)
-        outputs (torch/sgn outputs)]
-    activations
-    ;; (hd/similar? a)
-    (py.. outputs (size))
-    (hd/cleanup a outputs)
-    (hd/similarity a outputs))
-
-
-  (let [X (torch/stack
-           [
-            (hd/seed 2)
-            (hd/seed 2)
-            (hd/seed 2)])
-        a (py.. (py/get-item X [0 0])
-            (unsqueeze 0)
-            (unsqueeze 0))
-        activations (torch/einsum "bij,kj->bik" a (torch/conj X))
-        outputs (torch/einsum "bik,kj->bij" activations X)
-        outputs (torch/sgn outputs)]
-    activations
-    ;; (hd/similar? a)
-    (py.. outputs (size))
-    (hd/cleanup a outputs)
-    (hd/similarity a outputs))
-
-
-
-
-
-  ;; torch.Size([1, 1, 10000])
-
-
-
-
-
-
-  )
-
-
-
-
-
-
-
-(def factorize
-  "Default factorizer - uses resonator network for efficiency.
-   Falls back to exhaustive search if resonator fails."
-  resonator-factorize)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-(comment
-
-
-  (py.. books (size))
-  (py.. (hd/superposition books) (size))
-
-
-  (hd/superposition books)
-
-
-  (hd/similarity
-   (hd/superposition books)
-   (py/get-item books [0 0]))
-
-
-
-
-
-
-  (py..
-      (resonator-step-fhrr
-       (hd/seed 1)
-       (py.. books (unsqueeze 0))
-       (py.. (hd/superposition books) (unsqueeze 0)))
-      (size))
-
-
-
-  (py.. (py.. (hd/superposition books) (unsqueeze 0)) (size))
-
-
-  (let [a (hd/seed)
-        b (hd/seed)
-        c (hd/seed)
-        s (py.. (hd/bind [a b c]) (unsqueeze 0))
-        x (py.. (torch/stack [a b c]) (squeeze 1))]
-    (py.. x (size))
-    (py.. s (size))
-    (py.. (hd/bind s x) (size))
-    (hd/bind s (hd/inverse x))
-    (hd/similarity (hd/bind s (hd/inverse x))
-                   [(hd/bind b c) (hd/bind a c) (hd/bind a b)]))
-
-
-
-
-
-  )
-
-
-
-
-
-
-
-(comment
-
-  (let [X (torch/stack [(hd/seed 2) (hd/seed 2) (hd/seed 2)])
-        a (py/get-item X [0 0])
-        b (py/get-item X [1 0])
-        c (py/get-item X [2 0])
-        est (torch/stack [a b c])
-        activations
-        (torch/einsum
-         "bi,bki->bk"
-         est
-         (torch/conj X))
-        outputs
-        (torch/einsum
-         "bk,bki->bi"
-         activations X)
-        ;; outputs (torch/sgn outputs)
-        ]
-    ;; (py.. a (size))
-    ;; (py.. X (size))
-    ;; activations
-    ;; (hd/similar? a)
-    ;; (py.. outputs (size))
-    ;; (hd/cleanup a outputs)
-    ;; (hd/similarity a outputs)
-    ;; (py.. est (size))
-    activations
-    ;; (hd/similarity X outputs)
-    (hd/similarity
-     (py/get-item outputs 0)
-     (py/get-item X 0)))
-
-  (let [X (hd/seed 2)
-        a (py.. (py/get-item X 0) (unsqueeze 0))
-        activations (torch/einsum "ij,kj->ik" a (torch/conj X))
-        outputs (torch/einsum "ik,kj->ikj" activations X)
-        outputs (torch/sgn outputs)
-        ]
-    activations
-    (hd/similarity (torch/sgn outputs) X)
-    ;; (hd/similar? a)
-    (hd/cleanup a outputs)
-    (py.. outputs (size)))
-
-
-
-
-
-  )
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-(comment
-
-
-  (let [X (torch/stack
-           [(hd/seed 3)
-            (hd/seed 3)
-            (hd/seed 3)
-            ])
-        a (py/get-item X [0 0])
-        b (py/get-item X [1 0])
-        c (py/get-item X [2 0])
-
-        x (hd/bind [a b c])
-        estimates (hd/superposition X)
-        estimates (py.. estimates (unsqueeze 0))
-        inv-estimates (hd/inverse estimates)
-        n (py.. estimates (size -2))
-
-        inv-others
-        (->
-         (reduce
-          (fn [rolled i]
-            (into rolled
-                  (py.. inv-estimates (roll i -2))))
-          []
-          (range 1 n))
-         (torch/stack :dim -2))
-        inv-others (hd/bind inv-others)
-
-        ;; inv_others (torch/stack
-        ;;             [(hd/inverse b)
-        ;;              (hd/inverse a)])
-
-        new-estimates (hd/bind x inv-others)
-        _ (def new-estimates new-estimates)
-        activations (torch/einsum "bd,bkd->bk" new-estimates (torch/conj X))
-        outputs (torch/einsum "bk,bkd->bd" activations X)
-        outputs (torch/sgn outputs)]
-    activations
-    ;; (hd/similar? a)
-    (py.. outputs (size))
-    (hd/similarity outputs X)
-
-    [(hd/similarity a outputs)
-     (hd/similarity b outputs)
-     (hd/similarity c outputs)]
-
-    (hd/similarity x (hd/bind outputs))
-
-    [
-     (hd/similarity a (py/get-item outputs 0))
-     (hd/similarity b (py/get-item outputs 1))
-     (hd/similarity c (py/get-item outputs 2))]))
+(def factorize resonator-fhrr)

@@ -51,9 +51,11 @@ Preliminary interface:
 
 ## Why HDC
 
-Introduce a neurosymbolic paradigm with pros: 
+Introduce a neurosymbolic paradigm,
 
-- high biological plausibility.
+pros:
+
+- high biological plausibility,
 - a computing paradigm that makes sense in the light of neuronal ensembles. 
 - proven interesing / promising across cognitive modeling, analogical reasoning applications.
 - potential algorithmic layer for emerging neuromorphic hardware.
@@ -102,27 +104,50 @@ file:src/benjamin_schwerdtner/clj_push3_play/hdc/resonator.clj
 Factorize compound data structure representations in HDC/VSA.
 Given a hdv resulting from previous binding operations, which are the seed hypervectors contributing to the binding? 
 
+### Resonotor Network Algorithm
 
-### Example
+The resonator combines computing in superposition and cleanup operations to search the 'factor space' in parallel.
+It can be interpreted as a recurrent neuronal net with fixed point dynamics that are the solution to the factorization problem.
+
+### Example Usage
+
+From tests:
 
 ``` clojure
 
+(require '[benjamin-schwerdtner.clj-push3-play.hdc.resonator :as resonator])
+(require '[benjamin-schwerdtner.clj-push3-play.hdc.fhrr :as hd])
 
+(require-python '[torch :as torch])
+
+(def reference-impl resonator/exhaustive-search-factorize)
+
+(let [books (torch/stack [(hd/seed 10) (hd/seed 10) (hd/seed 10)])
+      [a b c] (mapv (fn [b] (py/get-item b (rand-int 10))) books)
+      x (hd/bind [a b c])
+      factors-ref (vec (reference-impl x books))
+      factors (:factors (resonator/resonator-fhrr x books))]
+  (t/is (torch/allclose (torch/stack factors-ref)
+                        (torch/stack factors))
+        (str "Factorizes")))
 ```
-
-
 
 ### Why
 
-- factorization might prove to be a vital module for neurosymbolic systems.
+- factorization (the flip side of binding) might prove to be a vital module for neurosymbolic systems.
 - proven to be an efficient alg by the researchers.
-
 
 drawbacks: 
 
 - research topic to make work with Binary Sparse Block Codes (BSBC).
 - ?? 
 
+### Significance
+
+I looked for examples and did not find another fhrr resonator implementation.
+This might be the first practical code example available.
+
+(The alg is a solved problem coming from the literature).
 
 
 ## Fractional Power Exponentiation (FPE), Spatial Semantic Pointer (SSP)

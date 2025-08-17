@@ -5,9 +5,33 @@ Adaptationism, Abstract replicator theory (Dawkins 1976, 1982) and Gradualism (D
 - Don't explain evolutionary open endedness (creativity).
 - Failed to inspire evolutionary algorithms that work.
 - Don't explain why evolution works /so well/.
-- Don't satisfactorily explain beauty in nature.
 - Have a problem with explaining sex.
 - Population Genetics models do not incoorparate symbiogenesis, horizontal gene transfer (Virusphere).
+- Population Genetics models are based on changes in gene frequency, but new genes have to come from somewhere.
+- Doesn't explain all aspects of /beauty in nature/? Dawkins would disagree, but
+- I suspect that theoretical evolutionary biologists have a richer set of algorithms in mind when they think of natural selection,
+  but that the algorithms are not formulated yet.
+
+  Alg (1): Natural Selection v1
+
+#+begin_src
+  # the non random survival of random variations
+
+  output: population'
+
+  natural-selction(population,threshold):
+     variations <- Mut(population)
+     # differential survival
+     survivors <- filter((λ(individual) fitness(individual) >= threshold) , variations)
+     return survivors
+
+#+end_src
+
+Where population is a set of =genomes=.
+
+Each genome =G= is a software program, instructing a morphology (and extended phenotype) of an =organism= O.
+Given an environment =env= (niche), G has a =fitness=, determining the number of it's descendants.
+
 
 ** Metaevolution / Meta Adaptionism
 
@@ -23,7 +47,7 @@ Adaptationism, Abstract replicator theory (Dawkins 1976, 1982) and Gradualism (D
   But now even in the domain of Evolability.
 
 - Pseudo teleological (!): 'Directed mutation' via Mut criteria: Elegance (well-design), beauty, composability etc. are possible.
-- No teleology is needed, just a rich higher order adaptation.
+- No teleology is needed, just a higher order adaptation.
 
 - =Mut= is adaptated. /Adaptations about adaptations/, meta adaptationism, is mathematically (software engineering wise) richer and more alive than first order adaptationism.
 
@@ -35,7 +59,7 @@ Adaptationism, Abstract replicator theory (Dawkins 1976, 1982) and Gradualism (D
 
 ** Modularity and Unconventional Information Flows
 
-- combination operator: =Compose=, a mutation function producing =variations=, /symbionts/, /combinations/, given 2 genomes =A=, =B=:
+- combination operator: =Compose=, a mutation function producing /symbionts/, /combinations/, given 2 genomes =A=, =B=:
 
   #+begin_src
   Compose(A,B) = A+B
@@ -92,10 +116,10 @@ Updated TOL (subversive):
 |                 |             +-----------+
 |                 |             |
 |                 |             |
-|                ++-+           |
+|                +--+           |
 +----+-- -- - - -|  | -- -- - --+
      |           +--+           |
-     |           Sym            +
+     |           Sym            |
      |                          |
      |                          |
      |                          |
@@ -112,7 +136,7 @@ Updated TOL (subversive):
 
 Sym    - Symbiogenesis Event
 Orig   - Origin of Life Event
-+---+  - Gene flow
+---    - Gene flow
 
 #+end_src
 
@@ -128,10 +152,13 @@ Orig   - Origin of Life Event
 - In population genetics this function is =inclusive genetic fitness= (R. Trivers, W.D. Hamilton,...).
 
 - In coevolutionary games: "Aspects of play" (Bucci, Pollack, and De Jon 2004, De Jon and Pollack 2004).
-- Say chess 1 directive: "Play good chess". This can mean be good at the endgame, controlling the center of the board, protecting the queen and so on.
+- Say chess has 1 directive: "Play good chess". This can mean be good at the endgame, controlling the center of the board, protecting the queen and so on.
 - 'Pareto coevolution' (Watson and Pollack 200a; Ficici and Pollcak 2001); Model different oponents, situations, contexts (the idea is to represent aspects of play):
 
 - Pareto dominance function: Individual A is pareto dominant over inidividual B, if it performs equal or better in all =contexts=.
+
+
+ Alg (2): Pareto Dominance
 
   #+begin_src
 
@@ -142,7 +169,7 @@ Orig   - Origin of Life Event
   #+end_src
 
 
-- Because of metaevoution: =Mut= can use metaevolutionary heuristics.
+- Because of metaevoution: =Mut= can use metaevolutionary heuristics as an apect of play. A gene could good when it's source code looks good.
 - Example: Length of the genome, elegance and beauty heuristics of genome.
 
 
@@ -150,13 +177,32 @@ Orig   - Origin of Life Event
   to filter candidate varations (=G1=, =G2=, ... ) of genome =G=.
 
 - Natural selection is licenced to steer mutation towards composable, elegant, beautiful systems.
-- In terms of genes eye view: A gene can advertise to the mutation operators "Look at me, I am an elegant (fit with many other genes, still short, ...) and evolvable".
+- In terms of genes eye view: A gene can advertise to the mutation operators "Look at me, I am an elegant, fit with many other genes, I am still short, I am good source code, ...".
 
 - Via epigenetics and unconventional genomic information flows, also: "I am useful across the tree of life (look at my epigenetic markers)".
 
-- fitness function in biology is still /inclusive genetic fitness/, but fitness contexts are an open ended problem because of =Mut=.
+- fitness function in biology is still /inclusive genetic fitness/, but what are the fitness contexts? an open ended problem because of complex =Mut=.
 
 - NOTE: Not to be confused with 'multilevel selection'.
+
+----------------------------------
+
+Paraphrasing Dawkins, recent interview about how he writes a book:
+
+#+begin_quote
+I write a chapter and re-read it multiple time later. Everytime I imagine being a different kind of reader.
+Through this Darwinian process the book is created.
+#+end_quote
+
+- Dawkins' considers a /rich set of criticisms/ to a design, i.e. a rich environment part of Darwinian process.
+- Dawkins' conception of natural selection clearly incoorperates multi dimensional fitness, i.e. /apects of play/, /perspectives/.
+  The way he said it, it almost comes across as the defining aspect of fitness 'good from many perspectives'.
+- We need algorithms that reflect these aspects of natural selection, which are apparently obvious to the biologist.
+- Claim: Biologists already have a richer alg in mind for natural selection. Just the translation into computer algorithms isn't done yet.
+
+
+-----------------------------------------------------
+
 
 ** Unconventional Information Flows
 

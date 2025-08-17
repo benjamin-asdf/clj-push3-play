@@ -5,6 +5,9 @@
    [benjamin-schwerdtner.clj-push3-play.hdc.spatial-semantic-pointer :as ssp]
    [benjamin-schwerdtner.clj-push3-play.hdc.config :refer [*torch-device*]]
 
+   [benjamin-schwerdtner.clj-push3-play.hdc.resonator :as resonator]
+   [benjamin-schwerdtner.clj-push3-play.hdc.fractional-power-encoding :as fpe]
+
    [libpython-clj2.python :refer [py. py..] :as py]
    [libpython-clj2.require :refer [require-python]]))
 
@@ -140,28 +143,14 @@
   ;;
   ;; dim(p) == count(bases) == k
   ;;
-  (hd/bind
-   (map-indexed (fn [idx v] (ssp/fractional-power-encoding (bases idx) v)) p)))
+  (hd/bind (map (fn [b v] (fpe/fpe b v)) bases p)))
+
 
 ;; =====================================
 
 (comment
-
   ;; the prototype location (purple)
   (def p [6.2 -6.2 5.3])
-  ;; preprosssing:
-
-  ;; scaling-constant beta
-  (def scaling-constant 10)
-
-  (defn preprocess-color [hue saturation brightness]
-    [(* (Math/cos hue) (/ saturation scaling-constant))
-     (* (Math/sin hue) (/ saturation scaling-constant))
-     (/ brightness scaling-constant)])
-
-  ;; ---------------------------------------
-
-
   )
 
 ;; ----------------------
@@ -212,8 +201,14 @@
 
   "
   [a b c]
-  (hd/bind (hd/unbind c a) c))
+  ;; Algorithm 3 find (using parallelogram method)
+  ;; 1: Input: a, b, c
+  ;; 2: Output: x
+  ;; 3: x ← (c ⊛ a−1 ) ⊛ b
+  ;; 4: return x
+  ;; (hd/bind (hd/bind c (hd/inverse a)) b)
 
+  (hd/bind (hd/unbind c a) b))
 
 
 ;;
@@ -223,56 +218,89 @@
 (defn decode
   "Returns a concept point in the domain D given a hypervector x.
 
-  bases-codebooks: `k` code books with length of the desired resolution.
 
+  opts are like the return of [[bases-codebooks]].
+
+  shapes:
+
+  x: (d)
+  values: (r)
+  books: (k,r,d)
+
+  k: Domain dimensions = D
+  r: book resolution
+  d: hyperdim
 
   "
-  [x bases-codebooks])
+  [x {:keys [books values]}]
+  (when-let [factors-idxs (:factor-idxs (resonator/factorize x books))]
+    (torch/index_select values -1 factors-idxs)))
+
 
 ;; resolution means step size
+
 (defn bases-codebooks
   [{:keys [k resolution high low basis-seeds]}]
   (let [epsilon 1e-5
-        values (torch/arange low (+ high epsilon) resolution :device *torch-device*)
+        values (torch/arange low
+                             (+ high epsilon)
+                             resolution
+                             :device
+                             *torch-device*)
         basis-seeds (or basis-seeds (hd/seed k))]
-    (ssp/fractional-power-encoding basis-seeds values)))
+    {:books
+     (fpe/fpe basis-seeds values)
+     :values values
+     :basis-seeds basis-seeds}))
+
+
+
+
 
 
 
 
 (comment
-  (py..
-      (bases-codebooks {:k 3 :resolution 0.5 :high 10 :low -10})
-      (size))
-  ;; torch.Size([3, 41, 10000])
-  ;; -----------
+  (do
+    (def scaling-constant 10)
+    (defn preprocess-color [hue saturation brightness]
+      [(* (Math/cos hue) (/ saturation scaling-constant))
+       (* (Math/sin hue) (/ saturation scaling-constant))
+       (/ brightness scaling-constant)])
+    (def p-purple (preprocess-color (* 315 (/ Math/PI 180)) 87 53))
+    (def p-blue   (preprocess-color (* 270 (/ Math/PI 180)) 1 5))
+    (def p-orange (preprocess-color (* 30  (/ Math/PI 40)) 88 1)
+      ;; [-6.222539674441618 6.222539674441619 1/10]
+      )
+    (def p-yellow (preprocess-color (* 73 (/ Math/PI 180)) 2 97))
+    (def basis-seeds (hd/seed 3))
+    (def B
+      (bases-codebooks
+       {:basis-seeds basis-seeds
+        :high 10
+        :k 3
+        :low -10
+        :resolution 0.1}))
+    (def P (encode-point [1.0 1.0 1.0] basis-seeds))
+    (let [[purple blue orange yellow]
+          (mapv
+           #(encode-point % basis-seeds)
+           [p-purple p-blue p-orange p-yellow])
+          x
+          (categorical-mapping purple blue orange)
+          #_(hd/bind
+             (hd/bind orange (hd/inverse purple))
+             blue)]
+      ;; (decode x B)
+      (hd/similarity purple blue)
+      (hd/similarity x orange)
+      (hd/similarity x yellow)
+      (hd/similarity orange yellow)
+      (hd/similarity orange purple)
+      (decode P B)
+      (decode orange B))))
 
-  (def a (hd/seed))
 
-  (hd/similarity
-   (ssp/fractional-power-encoding a 0)
-   (hd/ones))
-
-
-  ;; ------------------------
-  ;; conrete example:
-  ;; ------------------------
-  (defonce bases-codebook (hd/seed 3))
-
-  (def p-purple (preprocess-color (* 315 (/ Math/PI 180)) 87 53))
-  (def p-blue   (preprocess-color (* 270 (/ Math/PI 180)) 1 5))
-  (def p-orange (preprocess-color (* 30  (/ Math/PI 40)) 88 1))
-  (def p-yellow (preprocess-color (* 73 (/ Math/PI 180)) 2 97))
-  ;; ------------------------------------
-
-  (let [bases (into [] bases-codebook)
-        [purple blue orange]
-        (mapv
-         #(encode-point % bases)
-         [p-purple p-blue p-orange])
-        x (categorical-mapping purple blue orange)
-        ]
-    x))
 
 
 

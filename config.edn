@@ -1,4 +1,1 @@
-{:arc/data-path
- "/home/benj/repos/ARC-AGI-2/data"
- ;; "../ARC-AGI/data/"
- }
+{:arc/data-path "../ARC-AGI/data/"}
