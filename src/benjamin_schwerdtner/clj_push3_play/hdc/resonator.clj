@@ -95,11 +95,25 @@
 ;; The resonator combines superposition and cleanup
 ;;
 
+;; -----------------------------
+;; A FHRR resonator is found at
 ;;
-;; reference impl:
+;; https://arxiv.org/abs/2208.12880v4
 ;;
-;; https://github.com/spencerkent/resonator-networks/blob/master/resonator_networks/dynamics/rn_numpy.py#L7
+
 ;;
+;; reference impl
+;; -  (not FHRR) https://github.com/spencerkent/resonator-networks/blob/master/resonator_networks/dynamics/rn_numpy.py#L7
+;; -  https://codeocean.com/capsule/1211768/tree/v1
+;;
+
+;; WIP
+(def update-ratio 0.0005)
+(def update-ratio 0.05)
+(def noise-level 0.005)
+
+(def attenuation (atom nil))
+
 (defn resonator-step-fhrr
   "Returns new estimates for factorizing `target`, performs a resonator step with `books`.
 
@@ -165,15 +179,65 @@
         ;; Like address decoder neuron activations
         ;; shape: (n)
         attn
-          (torch/einsum "nd,nmd->nm" new-estimate (torch/conj books))
-        pattern (torch/einsum "nm,nmd->nd" attn books)
+        (torch/einsum "nd,nmd->nm" new-estimate (torch/conj books))
+        ;; optionally bias, nonlinearity
+        ;; pattern (torch/einsum "nm,nmd->nd" attn books)
+        patt-update (torch/einsum "nm,nmd->nd" attn books)
+        pattern (torch/add (torch/mul update-ratio patt-update)
+                           (torch/mul (- 1 update-ratio) estimates))
         ;; ----------------------------
         ;;
         ;; 4. non linearity | act | normalize
         ;; out = g(pattern)
         ;; using g = sgn
-        outputs (torch/sgn pattern)]
-    outputs))
+        outputs (torch/sgn pattern)
+        ;; outputs (torch/abs pattern)
+        ;;
+        ;; optionally + noise level (effectively causing
+        ;; restarts)
+        ;; outputs pattern
+        ;; outputs
+
+        ;; #1 noise;
+        #_(torch/add outputs
+                     (torch/mul noise-level
+                                (torch/randn_like outputs)))
+
+        ;; #2
+        ;; noise makes more sense if not random but drawn from
+        ;; the search space?
+        #_(torch/add outputs
+                     (torch/mul
+                      (torch/randn_like outputs)
+                      (torch/mul noise-level
+                                 (hd/normalize
+                                  (hd/superposition
+                                   books)))))
+        ;; #3:
+        ;; Try scale the noise according to an error?
+
+        error (torch/sub
+               1
+               (hd/similarity target (hd/bind outputs)))
+        _ (println "error: " error)
+
+        outputs
+        (torch/add
+         outputs
+         (torch/mul
+          (torch/randn_like outputs)
+          (torch/mul
+           (torch/mul error 2)
+           (hd/normalize (hd/superposition books)))))
+
+
+
+        ]
+    ;; (def pattern pattern)
+    (torch/squeeze outputs)))
+
+
+
 
 (defn resonator-fhrr
   "Perform a resonator factorization of `x` with `books`.
@@ -208,30 +272,30 @@
      :or {max-iterations 13 similarity-threshold 0.9}}]
    (let [initial-estimates (hd/superposition books)
          finish-info
-           (fn [{:keys [n-iteration estimates]}]
-             (cond (hd/similar? x
-                                (hd/normalize (hd/bind estimates))
-                                similarity-threshold)
-                     (let [factor-idxs
-                             (torch/stack
-                               (mapv (fn [x book]
-                                       (hd/cleanup-idx x book))
-                                 estimates
-                                 books))]
-                       {:factor-idxs factor-idxs
-                        :factors (into []
-                                       (map (fn [idx b]
-                                              (py/get-item b idx))
-                                         factor-idxs
-                                         books))
-                        :finish-reason :factorized
-                        :success? true})
-                   (< max-iterations n-iteration)
-                     {:finish-reason :max-iterations-reached
-                      :success? false}
-                   :else nil))]
+         (fn [{:keys [n-iteration estimates]}]
+           (cond (hd/similar? x
+                              (hd/normalize (hd/bind estimates))
+                              similarity-threshold)
+                 (let [factor-idxs
+                       (torch/stack
+                        (mapv (fn [x book]
+                                (hd/cleanup-idx x book))
+                              estimates
+                              books))]
+                   {:factor-idxs factor-idxs
+                    :factors (into []
+                                   (map (fn [idx b]
+                                          (py/get-item b idx))
+                                        factor-idxs
+                                        books))
+                    :finish-reason :factorized
+                    :success? true})
+                 (< max-iterations n-iteration)
+                 {:finish-reason :max-iterations-reached
+                  :success? false}
+                 :else nil))]
      (loop [{:keys [n-iteration estimates] :as state}
-              {:estimates initial-estimates :n-iteration 0}]
+            {:estimates initial-estimates :n-iteration 0}]
        (if-let [info (finish-info state)]
          (merge state info)
          (recur {:estimates (resonator-step-fhrr x books estimates)

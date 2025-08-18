@@ -142,14 +142,6 @@ drawbacks:
 - research topic to make work with Binary Sparse Block Codes (BSBC).
 - ?? 
 
-### Significance
-
-I looked for examples and did not find another fhrr resonator implementation.
-This might be the first practical code example available.
-
-(The alg is a solved problem coming from the literature).
-
-
 ## Fractional Power Exponentiation (FPE), Spatial Semantic Pointer (SSP)
 
 > A neural representation of continuous space using fractional binding

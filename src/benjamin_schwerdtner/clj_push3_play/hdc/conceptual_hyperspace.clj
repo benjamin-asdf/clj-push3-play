@@ -343,3 +343,189 @@
 ;; function 'readout' is equivalent to decode.
 ;; Alg also needs to build reso
 ;;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+;; --------
+;; working on it.
+;; need a better resonator
+;;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+(comment
+  (do
+    (def B (bases-codebooks {:high 2 :k 2 :low 0 :resolution 0.1}))
+
+    (def a (encode-point [1.0 0.0] (:basis-seeds B)))
+    (def b (encode-point [0.0 1.0] (:basis-seeds B)))
+    (def c (encode-point [1.0 1.0] (:basis-seeds B)))
+    (def d (encode-point [0.0 1.0] (:basis-seeds B)))
+    (hd/similarity
+     d
+     (hd/unbind (hd/bind a c) b)))
+
+
+
+
+
+  (do
+    (def B (bases-codebooks {:high 2 :k 2 :low 0 :resolution 0.1}))
+    (py.. (:books B) (size))
+    ;; torch.Size([2, 21, 10000])
+    (def a
+      (hd/bind
+       (fpe/fpe (first (:basis-seeds B)) 1.0)
+       (fpe/fpe (second (:basis-seeds B)) 1.0)))
+    (def b
+      (hd/bind
+       (fpe/fpe (first (:basis-seeds B)) 1.5)
+       (fpe/fpe (second (:basis-seeds B)) 1.0)))
+    (def c
+      (hd/bind
+       (fpe/fpe (first (:basis-seeds B)) 1.0)
+       (fpe/fpe (second (:basis-seeds B)) 1.0)))
+    (decode (hd/bind (hd/unbind c a) b) B)
+    (decode b B)
+    (:factor-idxs (resonator/factorize
+                   b
+                   (:books B)
+                   {:similarity-threshold 0.9}))
+
+
+
+    )
+
+
+
+
+
+
+
+
+  (do
+    (def B (bases-codebooks {:high 10 :k 2 :low -10 :resolution 0.1}))
+    (py.. (:books B) (size))
+    ;; torch.Size([2, 21, 10000])
+    (def a
+      (hd/bind (fpe/fpe (first (:basis-seeds B)) 1.0)
+               (fpe/fpe (second (:basis-seeds B)) 1.0)))
+    (def b
+      (hd/bind (fpe/fpe (first (:basis-seeds B)) 10.0)
+               (fpe/fpe (second (:basis-seeds B)) 1.0)))
+    (def c
+      (hd/bind (fpe/fpe (first (:basis-seeds B)) 1.0)
+               (fpe/fpe (second (:basis-seeds B)) 1.0)))
+    (decode (hd/bind (hd/unbind c a) b) B)
+    (:factor-idxs
+     (resonator/factorize b (:books B) {:similarity-threshold 0.9}))
+    (fpe/fpe (first (:basis-seeds B)) 2.0)
+    (resonator/factorize
+     (hd/bind
+      (-> B :books (py/get-item [0 -1]))
+      (-> B :books (py/get-item [1 -1])))
+     (:books B)
+     ;; (second (torch/split (:books B) 18 :dim -2))
+     )
+    (hd/similarity
+     (fpe/fpe (first (:basis-seeds B)) 10.0)
+     (-> B :books (py/get-item [0 -1])))
+
+    (hd/similarity
+     (fpe/fpe (second (:basis-seeds B)) 10.0)
+     (-> B :books (py/get-item [1 -1])))
+    (decode
+     (hd/bind
+      (fpe/fpe (first (:basis-seeds B)) 10.0)
+      (fpe/fpe (second (:basis-seeds B)) 10.0))
+     B)
+
+    (decode b B))
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  (do
+    (def B (bases-codebooks {:high 10 :k 3 :low -10 :resolution 0.1}))
+    (def b
+      (hd/bind [(fpe/fpe (first (:basis-seeds B)) 9.0)
+                (fpe/fpe (second (:basis-seeds B)) 9.0)
+                (fpe/fpe (first (rest (rest (:basis-seeds B)))) 9.0)]))
+    (decode b B))
+
+  (do
+    (def B (bases-codebooks {:high 10 :k 3 :low -10 :resolution 0.1}))
+    (def b
+      (hd/bind [(fpe/fpe (first (:basis-seeds B)) 9.0)
+                (fpe/fpe (second (:basis-seeds B)) 10.0)
+                (fpe/fpe (first (rest (rest (:basis-seeds B)))) 9.0)]))
+    (decode b B))
+
+
+
+
+
+
+
+
+  (do
+    (def B (bases-codebooks {:high 5 :k 3 :low -1 :resolution 1}))
+    (hd/similarity
+     (py/get-item (:books B) [1 -1])
+     (fpe/fpe (second (:basis-seeds B)) 5))
+    (def b
+      (hd/bind (fpe/fpe (first (:basis-seeds B)) 5)
+               (fpe/fpe (second (:basis-seeds B)) 5)))
+    (decode b B))
+
+
+
+
+
+
+  )
