@@ -6,9 +6,12 @@
 (require-python '[torch :as torch])
 
 (def ^:dynamic *torch-device*
-  (if (py.. torch/cuda is_available) :cuda :cpu))
+  (cond
+    (py.. torch/cuda is_available)
+    :cuda
+    (py.. torch/mps is_available)
+    :mps
+    :else
+    :cpu))
 
-(def ^:dynamic *torch-device*
-  :cpu
-  ;; (if (py.. torch/cuda is_available) :cuda :cpu)
-  )
+#_(def ^:dynamic *torch-device* :cpu)

@@ -82,17 +82,21 @@
 
 (defn random
   "
-  "
-  ([] (random 1))
-  ([num-vectors]
-   (let [size [num-vectors (-> *opts* :fhrr/dimensions)]
-         angle (->
-                (torch/empty size :dtype torch/float32 :device *torch-device*)
-                (py.. (uniform_ (- Math/PI) Math/PI)))]
-     (torch/complex (py.. angle (cos))
-                    (py.. angle (sin))))))
+  Returns a fresh fhrr unit vector.
 
-(def seed random)
+  size: the dimensions.
+
+  "
+  [size]
+  (let [angle (-> (torch/empty size :dtype torch/float32 :device *torch-device*)
+                  (py.. (uniform_ (- Math/PI) Math/PI)))]
+    (torch/complex (py.. angle (cos)) (py.. angle (sin)))))
+
+(defn seed
+  ([] (seed 1))
+  ([num-vectors]
+   (random
+    [num-vectors (:fhrr/dimensions *opts*)])))
 
 (defn superposition
   "Return the superposition of the hypervectors using element-wise sum.

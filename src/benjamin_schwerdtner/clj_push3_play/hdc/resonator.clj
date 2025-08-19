@@ -41,27 +41,25 @@
 (comment
   ;; "Elapsed time: 67.839989 msecs"
   (time (let
-            [books [(hd/seed 10)
-                    (hd/seed 10)
-                    (hd/seed 10)]
-             [a b c] (mapv (fn [b]
-                             (py/get-item b (rand-int 10)))
-                           books)
-             x (hd/bind [a b c])
+         [books [(hd/seed 10)
+                 (hd/seed 10)
+                 (hd/seed 10)]
+          [a b c] (mapv (fn [b]
+                          (py/get-item b (rand-int 10)))
+                        books)
+          x (hd/bind [a b c])
 
-             [af bf cf]
-             (into [] (exhaustive-search-factorize x books))]
+          [af bf cf]
+          (into [] (exhaustive-search-factorize x books))]
 
-            (hd/similarity
-             (torch/stack [a b c])
-             (torch/stack [af bf cf]))))
+          (hd/similarity
+           (torch/stack [a b c])
+           (torch/stack [af bf cf]))))
 
   ;; tensor([[ 1.0000, -0.0020, -0.0066],
   ;;         [-0.0020,  1.0000,  0.0034],
   ;;         [-0.0066,  0.0034,  1.0000]])
   )
-
-
 ;; Resonator networks for factoring distributed representations of data structures
 ;; Frady, Kent, Olshausen, Sommer 2020
 ;; Neural Computation 32, 2311-2331 (2020)
@@ -99,7 +97,6 @@
 ;; A FHRR resonator is found at
 ;;
 ;; https://arxiv.org/abs/2208.12880v4
-;;
 
 ;;
 ;; reference impl
@@ -107,10 +104,10 @@
 ;; -  https://codeocean.com/capsule/1211768/tree/v1
 ;;
 
-;; WIP
-(def update-ratio 0.0005)
 (def update-ratio 0.05)
 (def noise-level 0.005)
+; (def update-ratio 1) ; Removed - using 0.05 from line above
+
 
 (def attenuation (atom nil))
 
@@ -178,79 +175,70 @@
         ;; attn = e*X^T activations | similarity | attention
         ;; Like address decoder neuron activations
         ;; shape: (n)
+
         attn
-        (torch/einsum "nd,nmd->nm" new-estimate (torch/conj books))
-        ;; optionally bias, nonlinearity
-        ;; pattern (torch/einsum "nm,nmd->nd" attn books)
+        (torch/einsum "nd,nmd->nm" new-estimate
+                      (torch/resolve_conj
+                       (torch/conj books)))
+
         patt-update (torch/einsum "nm,nmd->nd" attn books)
         pattern (torch/add (torch/mul update-ratio patt-update)
                            (torch/mul (- 1 update-ratio) estimates))
+
+        ;; --------------------------------------------------------------------
+
+
+
+
+
+
         ;; ----------------------------
         ;;
         ;; 4. non linearity | act | normalize
         ;; out = g(pattern)
         ;; using g = sgn
         outputs (torch/sgn pattern)
-        ;; outputs (torch/abs pattern)
-        ;;
-        ;; optionally + noise level (effectively causing
-        ;; restarts)
-        ;; outputs pattern
-        ;; outputs
 
-        ;; #1 noise;
-        #_(torch/add outputs
-                     (torch/mul noise-level
-                                (torch/randn_like outputs)))
 
-        ;; #2
-        ;; noise makes more sense if not random but drawn from
-        ;; the search space?
-        #_(torch/add outputs
-                     (torch/mul
-                      (torch/randn_like outputs)
-                      (torch/mul noise-level
-                                 (hd/normalize
-                                  (hd/superposition
-                                   books)))))
-        ;; #3:
-        ;; Try scale the noise according to an error?
-
-        error (torch/sub
-               1
-               (hd/similarity target (hd/bind outputs)))
-        _ (println "error: " error)
-
+        ;; + noise
         outputs
         (torch/add
          outputs
          (torch/mul
           (torch/randn_like outputs)
           (torch/mul
-           (torch/mul error 2)
-           (hd/normalize (hd/superposition books)))))
+           noise-level
+
+           (hd/normalize (hd/superposition books))
+
+           )))
+
+        ;; --------------------------------------------
 
 
 
         ]
-    ;; (def pattern pattern)
+
+    (swap! attenuation (fn [a] (torch/add a outputs)))
+
+
     (torch/squeeze outputs)))
 
 
-
+;; Removed duplicate definition - see the first one above with device handling
 
 (defn resonator-fhrr
-  "Perform a resonator factorization of `x` with `books`.
-  Returns an outcome info map with the following keys:
+  "perform a resonator factorization of `x` with `books`.
+  returns an outcome info map with the following keys:
 
-  `:factors`: a seq of hdvs, one for each book. Binding the together yields something similar to `x`.
+  `:factors`: a seq of hdvs, one for each book. binding the together yields something similar to `x`.
   `:finish-reason`: a keyword indicating why the factorization finished.
-                    Can be `:factorized` or `:max-iterations-reached`.
+                    can be `:factorized` or `:max-iterations-reached`.
   `:success?`: true if the factorization was successful, false otherwise.
 
 
   `n`: factors count
-  `m`: Book resolution
+  `m`: book resolution
   `d`: hdv dimension
 
   shapes:
@@ -260,10 +248,10 @@
 
   opts:
 
-  `similarity-threshold`: Sim as by [[hd/similarity]] for which estimates are accepted.
-                          Depends on how dirty your input is.
+  `similarity-threshold`: sim as by [[hd/similarity]] for which estimates are accepted.
+                          depends on how dirty your input is.
 
-  `max-iterations`: Number of iterations before giving up.
+  `max-iterations`: number of iterations before giving up.
 
   "
   ([x books] (resonator-fhrr x books {}))
@@ -272,33 +260,442 @@
      :or {max-iterations 13 similarity-threshold 0.9}}]
    (let [initial-estimates (hd/superposition books)
          finish-info
-         (fn [{:keys [n-iteration estimates]}]
-           (cond (hd/similar? x
-                              (hd/normalize (hd/bind estimates))
-                              similarity-threshold)
-                 (let [factor-idxs
-                       (torch/stack
-                        (mapv (fn [x book]
-                                (hd/cleanup-idx x book))
-                              estimates
-                              books))]
-                   {:factor-idxs factor-idxs
-                    :factors (into []
-                                   (map (fn [idx b]
-                                          (py/get-item b idx))
-                                        factor-idxs
-                                        books))
-                    :finish-reason :factorized
-                    :success? true})
-                 (< max-iterations n-iteration)
-                 {:finish-reason :max-iterations-reached
-                  :success? false}
-                 :else nil))]
+           (fn [{:keys [n-iteration estimates]}]
+             (cond (hd/similar? x
+                                (hd/normalize (hd/bind estimates))
+                                similarity-threshold)
+                     (let [factor-idxs (mapv (fn [x book]
+                                               (hd/cleanup-idx x
+                                                               book))
+                                         estimates
+                                         books)
+                           ;; Convert to CPU for indexing if
+                           ;; needed
+                           factor-idxs-cpu
+                             (mapv (fn [idx]
+                                     (if (py.. idx -is_cuda)
+                                       (py.. idx cpu)
+                                       (if (= (str (py.. idx -device))
+                                              "mps:0")
+                                         (py.. idx cpu)
+                                         idx)))
+                               factor-idxs)]
+                       {:factor-idxs factor-idxs-cpu
+                        :factors (into []
+                                       (map (fn [idx b]
+                                              (py/get-item
+                                                b
+                                                (py.. idx item)))
+                                         factor-idxs-cpu
+                                         books))
+                        :finish-reason :factorized
+                        :success? true})
+                   (< max-iterations n-iteration)
+                     {:finish-reason :max-iterations-reached
+                      :success? false}
+                   :else nil))]
      (loop [{:keys [n-iteration estimates] :as state}
-            {:estimates initial-estimates :n-iteration 0}]
+              {:estimates initial-estimates :n-iteration 0}]
        (if-let [info (finish-info state)]
          (merge state info)
          (recur {:estimates (resonator-step-fhrr x books estimates)
                  :n-iteration (inc n-iteration)}))))))
 
 (def factorize resonator-fhrr)
+
+(comment
+  (time
+   (doall
+    (for [book-size [10 20 30 50]]
+      (for [update-r (range 0.001 0.5 0.01)]
+        {:update-ratio update-r
+         :book-zise book-size
+         :results
+         (doall
+          (for [n (range 2)]
+            (do (def update-ratio update-r)
+                (def books
+                  (hd/random [3 book-size
+                              (:fhrr/dimensions hd/*opts*)]))
+                (def origbooks books)
+                (py.. books (size))
+                (def a (py/get-item books [0 -1]))
+                (def b (py/get-item books [1 -1]))
+                (def c (py/get-item books [2 -1]))
+                (def target (hd/bind [a b c]))
+                (select-keys (resonator-fhrr target books)
+                             [:n-iteration :success?]))))}))))
+
+
+
+
+  (time
+   (doall
+    (for [noise-v
+          [0 0.005 0.1 0.2 0.3]
+          ;; (range 0 0.005 0.5)
+          ]
+      (for [n (range 3)]
+        (time
+         (do
+           (def noise-level noise-v)
+           (def update-ratio 0.01)
+           (def book-size 50)
+           (def books
+             (hd/random [3 book-size (:fhrr/dimensions hd/*opts*)]))
+           (def origbooks books)
+           (py.. books (size))
+           (def a (py/get-item books [0 -1]))
+           (def b (py/get-item books [1 -1]))
+           (def c (py/get-item books [2 -1]))
+           (def target (hd/bind [a b c]))
+           (select-keys
+            (resonator-fhrr target books {:max-iterations 20})
+            [:n-iteration :success?])))))))
+
+  #_(
+     ({:n-iteration 21 :success? false}
+      {:n-iteration 9 :success? true}
+      {:n-iteration 7 :success? true})
+
+
+     ({:n-iteration 4 :success? true}
+      {:n-iteration 21 :success? false}
+      {:n-iteration 8 :success? true})
+
+     ({:n-iteration 11 :success? true}
+      {:n-iteration 8 :success? true}
+      {:n-iteration 9 :success? true})
+
+     ({:n-iteration 8 :success? true}
+      {:n-iteration 16 :success? true}
+      {:n-iteration 18 :success? true})
+
+
+     ({:n-iteration 21 :success? false}
+      {:n-iteration 21 :success? false}
+      {:n-iteration 21 :success? false}))
+
+
+  (time
+   (doall
+    (for [noise-v [0.15 0.2]]
+      (for [n (range 20)]
+        (time (do (def noise-level noise-v)
+                  (def update-ratio 0.01)
+                  (def book-size 50)
+                  (def books
+                    (hd/random [3 book-size
+                                (:fhrr/dimensions hd/*opts*)]))
+                  (def origbooks books)
+                  (py.. books (size))
+                  (def a (py/get-item books [0 -1]))
+                  (def b (py/get-item books [1 -1]))
+                  (def c (py/get-item books [2 -1]))
+                  (def target (hd/bind [a b c]))
+                  (select-keys
+                   (resonator-fhrr target books {:max-iterations 20})
+                   [:n-iteration :success?])))))))
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  (py.. books -device)
+
+  (torch/allclose
+   (py.. (hd/superposition books) (to :device :cpu))
+   (hd/superposition books))
+
+  (py.. books -device)
+  (py.. books -device)
+
+
+  (torch/allclose
+   (hd/superposition (py.. books (to :device :cpu)))
+   (py.. (hd/superposition books) (to :device :cpu)))
+
+  (torch/allclose books books)
+  (torch/conj books)
+
+  (hd/similarity
+   [(hd/superposition (py.. books (to :device :cpu)))
+    (py.. (hd/superposition books) (to :device :cpu))])
+
+  (torch/allclose
+   (py.. (torch/sum books) (to :device :cpu))
+   (torch/sum (py.. books (to :device :cpu))))
+
+  (def e (hd/superposition books))
+  (torch/allclose e (hd/superposition books))
+
+
+
+
+
+  (time
+   (do
+     (def books (hd/random [3 10 (:fhrr/dimensions hd/*opts*)]))
+     (def origbooks books)
+     (py.. books (size))
+     (def a (py/get-item books [0 -1]))
+     (def b (py/get-item books [1 -1]))
+     (def c (py/get-item books [2 -1]))
+     (def target (hd/bind [a b c]))
+     (let [xmps (hd/bind [a b c])
+           booksmps books
+           xcpu (py.. xmps (to :device :cpu))
+           bookscpu (py.. books (to :device :cpu))]
+       ;; [(let [out (resonator-step-fhrr x books
+       ;; (hd/superposition books))]
+       ;;    (py.. out (to :device :cpu)))
+       ;;  (resonator-step-fhrr xcpu bookscpu (hd/superposition
+       ;;  bookscpu))]
+       ;; (torch/allclose
+       ;;  (let [out (resonator-step-fhrr x books
+       ;;  (hd/superposition books))]
+       ;;    (py.. out (to :device :cpu)))
+       ;;  (resonator-step-fhrr xcpu bookscpu (hd/superposition
+       ;;  bookscpu)))
+       ;; (resonator-fhrr x books)
+       [(torch/allclose (py.. (hd/superposition books)
+                          (to :device :cpu))
+                        (hd/superposition bookscpu))
+        (torch/allclose
+         (let [estimates (hd/superposition bookscpu)]
+           (let [estimates (torch/unsqueeze estimates 0)
+                 n (py.. estimates (size -2))
+                 ;; ----------------------
+                 ;;
+                 ;; 1. For each factor, find the
+                 ;; other factors and bind them
+                 others (-> (reduce (fn [rolled i]
+                                      (into
+                                       rolled
+                                       (torch/roll estimates i -2)))
+                                    []
+                                    (range 1 n))
+                            ;; shape: (n,n-1,d)
+                            (torch/stack :dim -2)
+                            ;; shape: (n,d)
+                            (hd/bind))]
+             others))
+         (let [estimates (hd/superposition books)]
+           (let [estimates (torch/unsqueeze estimates 0)
+                 n (py.. estimates (size -2))
+                 ;; ----------------------
+                 ;;
+                 ;; 1. For each factor, find the
+                 ;; other factors and bind them
+                 others (-> (reduce (fn [rolled i]
+                                      (into
+                                       rolled
+                                       (torch/roll estimates i -2)))
+                                    []
+                                    (range 1 n))
+                            ;; shape: (n,n-1,d)
+                            (torch/stack :dim -2)
+                            ;; shape: (n,d)
+                            (hd/bind))]
+             (py.. others (to :device :cpu)))))
+        (torch/allclose
+         (let [estimates (hd/superposition bookscpu)
+               target xcpu]
+           (let [estimates (torch/unsqueeze estimates 0)
+                 n (py.. estimates (size -2))
+                 ;; ----------------------
+                 ;;
+                 ;; 1. For each factor, find the
+                 ;; other factors and bind them
+                 others (-> (reduce (fn [rolled i]
+                                      (into
+                                       rolled
+                                       (torch/roll estimates i -2)))
+                                    []
+                                    (range 1 n))
+                            ;; shape: (n,n-1,d)
+                            (torch/stack :dim -2)
+                            ;; shape: (n,d)
+                            (hd/bind))
+                 new-estimate (hd/bind target (hd/inverse others))]
+             new-estimate))
+         (py..
+             (let [estimates (hd/superposition books)
+                   target xmps]
+               (let [estimates (torch/unsqueeze estimates 0)
+                     n (py.. estimates (size -2))
+                     ;; ----------------------
+                     ;;
+                     ;; 1. For each factor, find the
+                     ;; other factors and bind them
+                     others (-> (reduce
+                                 (fn [rolled i]
+                                   (into rolled
+                                         (torch/roll estimates i -2)))
+                                 []
+                                 (range 1 n))
+                                ;; shape: (n,n-1,d)
+                                (torch/stack :dim -2)
+                                ;; shape: (n,d)
+                                (hd/bind))
+                     new-estimate (hd/bind target (hd/inverse others))]
+                 new-estimate))
+             (to :device :cpu)))
+        (torch/allclose
+         (let [estimates (hd/superposition bookscpu)
+               books bookscpu
+               target xcpu]
+           (let [estimates (torch/unsqueeze estimates 0)
+                 n (py.. estimates (size -2))
+                 ;; ----------------------
+                 ;;
+                 ;; 1. For each factor, find the
+                 ;; other factors and bind them
+                 others (-> (reduce (fn [rolled i]
+                                      (into
+                                       rolled
+                                       (torch/roll estimates i -2)))
+                                    []
+                                    (range 1 n))
+                            ;; shape: (n,n-1,d)
+                            (torch/stack :dim -2)
+                            ;; shape: (n,d)
+                            (hd/bind))
+                 new-estimate (hd/bind target (hd/inverse others))
+                 attn (torch/einsum "nd,nmd->nm"
+                                    new-estimate
+                                    (torch/resolve_conj (torch/conj
+                                                         books)))
+                 pattern (torch/einsum "nm,nmd->nd" attn books)]
+             pattern))
+         (py..
+             (let [estimates (hd/superposition books)
+                   target xmps]
+               (let [estimates (torch/unsqueeze estimates 0)
+                     n (py.. estimates (size -2))
+                     ;; ----------------------
+                     ;;
+                     ;; 1. For each factor, find the
+                     ;; other factors and bind them
+                     others (-> (reduce
+                                 (fn [rolled i]
+                                   (into rolled
+                                         (torch/roll estimates i -2)))
+                                 []
+                                 (range 1 n))
+                                ;; shape: (n,n-1,d)
+                                (torch/stack :dim -2)
+                                ;; shape: (n,d)
+                                (hd/bind))
+                     new-estimate (hd/bind target (hd/inverse others))
+                     attn (torch/einsum "nd,nmd->nm"
+                                        new-estimate
+                                        (torch/resolve_conj (torch/conj
+                                                             books)))
+                     pattern (torch/einsum "nm,nmd->nd" attn books)]
+                 pattern))
+             (to :device :cpu)))
+        (torch/allclose
+         (let [estimates (hd/superposition bookscpu)
+               books bookscpu
+               target xcpu]
+           (let [estimates (torch/unsqueeze estimates 0)
+                 n (py.. estimates (size -2))
+                 ;; ----------------------
+                 ;;
+                 ;; 1. For each factor, find the
+                 ;; other factors and bind them
+                 others (-> (reduce (fn [rolled i]
+                                      (into
+                                       rolled
+                                       (torch/roll estimates i -2)))
+                                    []
+                                    (range 1 n))
+                            ;; shape: (n,n-1,d)
+                            (torch/stack :dim -2)
+                            ;; shape: (n,d)
+                            (hd/bind))
+                 new-estimate (hd/bind target (hd/inverse others))
+                 attn (torch/einsum "nd,nmd->nm"
+                                    new-estimate
+                                    (torch/resolve_conj (torch/conj
+                                                         books)))
+                 pattern (torch/einsum "nm,nmd->nd" attn books)
+                 outputs (torch/sgn pattern)]
+             outputs))
+         (py..
+             (let [estimates (hd/superposition books)
+                   target xmps]
+               (let [estimates (torch/unsqueeze estimates 0)
+                     n (py.. estimates (size -2))
+                     ;; ----------------------
+                     ;;
+                     ;; 1. For each factor, find the
+                     ;; other factors and bind them
+                     others (-> (reduce
+                                 (fn [rolled i]
+                                   (into rolled
+                                         (torch/roll estimates i -2)))
+                                 []
+                                 (range 1 n))
+                                ;; shape: (n,n-1,d)
+                                (torch/stack :dim -2)
+                                ;; shape: (n,d)
+                                (hd/bind))
+                     new-estimate (hd/bind target (hd/inverse others))
+                     attn (torch/einsum "nd,nmd->nm"
+                                        new-estimate
+                                        (torch/resolve_conj (torch/conj
+                                                             books)))
+                     pattern (torch/einsum "nm,nmd->nd" attn books)
+                     outputs (torch/sgn pattern)]
+                 outputs))
+           (to :device :cpu)))]))))
