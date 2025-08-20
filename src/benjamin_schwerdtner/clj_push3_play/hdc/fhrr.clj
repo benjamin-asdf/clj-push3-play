@@ -47,6 +47,7 @@
 
 ;; ---------------------------------------------------------------------------------------------
 
+#_(def ^:dynamic *opts* {:fhrr/dimensions 512})
 (def ^:dynamic *opts* {:fhrr/dimensions (long 1e4)})
 
 (defn zeroes
@@ -93,7 +94,7 @@
     (torch/complex (py.. angle (cos)) (py.. angle (sin)))))
 
 (defn seed
-  ([] (seed 1))
+  ([] (random [(:fhrr/dimensions *opts*)]))
   ([num-vectors]
    (random
     [num-vectors (:fhrr/dimensions *opts*)])))
