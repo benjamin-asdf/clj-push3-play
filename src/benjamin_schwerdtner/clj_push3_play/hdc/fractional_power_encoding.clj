@@ -136,31 +136,11 @@
 
 (def fpe fractional-power-encoding)
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 (comment
-
   (def a (hd/seed))
   (def b (hd/seed))
-
   (hd/similarity a (hd/normalize (hd/bind a b)))
-
-
   (hd/similarity (hd/bind a a) (fpe a 2))
-
 
   (hd/similarity
    (fpe a 1.5)

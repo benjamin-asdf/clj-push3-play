@@ -68,7 +68,6 @@ drawbacks:
 - additional prgrammer load for dealing with subsymbolic tensor operations.
 
 
-
 ## Fourier Holographic Reduced Representation (FHRR)
 
 > Holographic Reduced Representation: Distributed Representation for Cognitive Structures
@@ -98,6 +97,8 @@ https://arxiv.org/abs/2007.03748
 
 file:src/benjamin_schwerdtner/clj_push3_play/hdc/resonator.clj
 
+- WIP: incoorparate improvements from https://arxiv.org/abs/2208.12880v4
+
 
 ### The Problem
 
@@ -108,6 +109,10 @@ Given a hdv resulting from previous binding operations, which are the seed hyper
 
 The resonator combines computing in superposition and cleanup operations to search the 'factor space' in parallel.
 It can be interpreted as a recurrent neuronal net with fixed point dynamics that are the solution to the factorization problem.
+
+
+
+
 
 ### Example Usage
 
@@ -142,13 +147,6 @@ drawbacks:
 - research topic to make work with Binary Sparse Block Codes (BSBC).
 - ?? 
 
-### Significance
-
-I looked for examples and did not find another fhrr resonator implementation.
-This might be the first practical code example available.
-
-(The alg is a solved problem coming from the literature).
-
 
 ## Fractional Power Exponentiation (FPE), Spatial Semantic Pointer (SSP)
 
@@ -158,6 +156,9 @@ Brent Komer, Terrence C. Stewart,
 Aaron R. Voelker, and Chris Eliasmith. A neural representation of continuous space using fractional binding. 
 In Annual Meeting of the Cognitive Science Society, 2019.
 
+FPE:  <file:src/benjamin_schwerdtner/clj_push3_play/hdc/fractional_power_encoding.clj>
+SSP:  <file:src/benjamin_schwerdtner/clj_push3_play/hdc/spatial_semantic_pointer.clj>
+
 ## Conceptual Hyperspace (CH)
 
 > Analogical Reasoning Within a Conceptual Hyperspace
@@ -165,10 +166,7 @@ In Annual Meeting of the Cognitive Science Society, 2019.
 Howard Goldowsky, Vasanth Sarathy, 2024
 https://arxiv.org/abs/2411.08684
 
-
-
-
-
+- wip
 
 
 # Ideas / want to do
