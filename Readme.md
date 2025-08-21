@@ -156,8 +156,8 @@ Brent Komer, Terrence C. Stewart,
 Aaron R. Voelker, and Chris Eliasmith. A neural representation of continuous space using fractional binding. 
 In Annual Meeting of the Cognitive Science Society, 2019.
 
-[FPE impl](src/benjamin_schwerdtner/clj_push3_play/hdc/fractional_power_encoding.clj), 
-[SSP impl](src/benjamin_schwerdtner/clj_push3_play/hdc/spatial_semantic_pointer.clj), 
+- [FPE impl](src/benjamin_schwerdtner/clj_push3_play/hdc/fractional_power_encoding.clj)
+- [SSP impl](src/benjamin_schwerdtner/clj_push3_play/hdc/spatial_semantic_pointer.clj)
 
 ## Conceptual Hyperspace (CH)
 
