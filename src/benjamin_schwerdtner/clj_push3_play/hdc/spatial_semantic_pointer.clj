@@ -388,6 +388,12 @@
         all-ssps (spatial-semantic-pointer-many x-flat y-flat)]
     {:codebook all-ssps :x-positions x-flat :y-positions y-flat}))
 
+;; -----------------------------------------------
+;; > This could be done with resonator,
+;;   or https://arxiv.org/html/2412.00488v1
+;;
+;; -----------------------------------------------
+
 (defn readout
   "Returns a [x y] position decoded from a 2d spatial semantic pointer ssp.
 
