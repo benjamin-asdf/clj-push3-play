@@ -40,21 +40,43 @@
 
 
 (comment
+  ;; book-size = 50, factors = 3 is well within operational capacity.
+  (for [book-size [10 15 20 40 50 100 150]]
+    (for [trial (range 20)]
+      (let [books (torch/stack [(hd/seed book-size)
+                                (hd/seed book-size)
+                                (hd/seed book-size)])
+            [a b c] [(py/get-item books [0 -1])
+                     (py/get-item books [1 -1])
+                     (py/get-item books [2 -1])]
+            x (hd/bind [a b c])
+            out (resonator/resonator-fhrr x books)
+            factors (:factors out)]
+        (when (:success? out)
+          (torch/allclose
+           x
+           (hd/bind factors))))))
+  (def output *1)
+  (map #(remove true? %) output)
+  '(
+    ;; book size
+    ;; 10 - 50
+    ()
+    ()
+    ()
+    ()
+    ()
+    ;; 100:
+    (nil)
+    ;; 150:
+    (nil nil nil nil nil))
 
 
-  ;; at k=15, capacity reached
-  (for [book-size [10 15]]
-    (let [books (torch/stack [(hd/seed book-size) (hd/seed book-size)
-                              (hd/seed book-size)])
-          [a b c] [(py/get-item books [0 -1]) (py/get-item books [1 -1])
-                   (py/get-item books [2 -1])]
-          x (hd/bind [a b c])
-          factors (:factors (resonator/resonator-fhrr x books))]
-      (torch/allclose
-       (torch/stack [a b c])
-       (torch/stack factors))))
 
-  ;; 10<k it starts failing sometimes
+
+
+
+
 
 
 
@@ -121,18 +143,4 @@
    (hd/normalize (hd/superposition books)))
   (hd/similarity
    books
-   (hd/superposition books))
-
-
-
-
-
-
-
-
-
-
-
-
-
-  )
+   (hd/superposition books)))

@@ -14,4 +14,4 @@
     :else
     :cpu))
 
-#_(def ^:dynamic *torch-device* :cpu)
+(def ^:dynamic *torch-device* :cpu)

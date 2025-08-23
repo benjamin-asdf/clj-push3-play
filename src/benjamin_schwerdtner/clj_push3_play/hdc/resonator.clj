@@ -4,10 +4,10 @@
    [libpython-clj2.python :refer [py. py..] :as py]
    [libpython-clj2.require :refer [require-python]]
 
-   [benjamin-schwerdtner.clj-push3-play.hdc.fhrr :as hd]
-   [benjamin-schwerdtner.clj-push3-play.hdc.data :as hdd]))
+   [benjamin-schwerdtner.clj-push3-play.hdc.fhrr :as hd]))
 
 (require-python '[torch :as torch])
+(require-python '[torch.nn.functional :as F])
 
 ;; The problem
 ;;
@@ -60,11 +60,20 @@
   ;;         [-0.0020,  1.0000,  0.0034],
   ;;         [-0.0066,  0.0034,  1.0000]])
   )
+
+;; -------------------------------
+
+;; 1.
+;;
 ;; Resonator networks for factoring distributed representations of data structures
 ;; Frady, Kent, Olshausen, Sommer 2020
 ;; Neural Computation 32, 2311-2331 (2020)
-
+;;
 ;; https://arxiv.org/abs/2007.03748
+
+;; 2.
+;;
+;; https://arxiv.org/abs/2208.12880v4
 
 ;; --------------------------------------
 ;;
@@ -104,12 +113,39 @@
 ;; -  https://codeocean.com/capsule/1211768/tree/v1
 ;;
 
-(def update-ratio 0.05)
-(def noise-level 0.005)
-; (def update-ratio 1) ; Removed - using 0.05 from line above
+;; -----------------------------
 
+(defn norm
+  [x]
+  (torch/div (torch/norm x)
+             (torch/mul (torch/sqrt (torch/tensor (py.. x (size 0))))
+                        2)))
 
-(def attenuation (atom nil))
+(defn norm-abs [x] (torch/div x (torch/abs x)))
+
+(def resonator-defaults
+  {:phasor-projection
+     ;; set the mag of all vector elements to 1
+     (fn [x] (torch/div x (norm x)))
+   :non-linearity
+     ;; Quote:
+     ;; Our experiments show that a combination of a ReLU and
+     ;; polynomial exponent performs best
+     (fn poly [x {:keys [cleanup-k]}]
+       ;; the k paramater controls the amount of superposition of
+       ;; different possible solutions, i.e. the sparsity
+       ;;
+       ;; below 1: weaken the cleanup (k=0 would return the
+       ;; complete superposition)
+       ;; above 1: achieve a stricter cleanup like argmax, or
+       ;; winner-take-all for high ks.
+       (torch/pow (F/relu x) cleanup-k))
+   ;; cleanup-k > 1 didn't do much for me.
+   :cleanup-k 1
+   :noise-level 0.001
+   :update-ratio 0.1
+   :max-iterations 13
+   :similarity-threshold 0.9})
 
 (defn resonator-step-fhrr
   "Returns new estimates for factorizing `target`, performs a resonator step with `books`.
@@ -127,13 +163,15 @@
 
   Each new estimate is given by the equivalent of this (for x):
 
-  x-estimate(t + 1) = g(XX^T(s ⊙ y-estimate(t)^-1 ⊙ z-estimate(t)^-1 ))
+  eqn 1:  x-estimate(t + 1) = g(X^T p(X(s ⊙ y-estimate(t)^-1 ⊙ z-estimate(t)^-1))) + η
 
 
-  ⊙ is bind
-  ^-1 is inverse
-  s is the input / target (to be factorized)
-
+  ⊙    : bind
+  ^-1    : inverse
+  s      : the input / target (to be factorized)
+  p(x)   : a a non-linearity
+  g(x)   : a phasor-projection, setting the mag of the vectors 1
+  η      : a random noise to help prevent local optima
 
   So for each factor,
 
@@ -142,8 +180,27 @@
   - This step is conceptually similar to a Hopfield Net.
   - Normalize outputs with an activation function `g`, prevent run away effects.
 
+  --
+
+  Beyond the update described, we only change the next state by an update-ratio factor γ:
+
+  if eqn 1 is 'update', then
+
+  x(t+1) = γ * update(x) +  (1 - γ) * x
+
+  So with low `update-ratio`, we mostly keep x, just like a residuals net in deep learning;
+  Where each layer only contributes an update but does not replace the output.
   "
-  [target books estimates]
+  [target books estimates
+   {:keys [ ;; p(x)
+           non-linearity
+           ;; η
+           noise-level
+           ;; g(x)
+           phasor-projection
+           ;; γ
+           update-ratio]
+    :as opts}]
   (let [estimates (torch/unsqueeze estimates 0)
         n (py.. estimates (size -2))
         ;; ----------------------
@@ -168,68 +225,51 @@
         ;; -----------------------------
         ;;
         ;; 3.
-        ;; pattern = XX^T(e)
         ;; Cleanup / autoassociative part. Scale the output
         ;; pattern by it's similarity (activation).
         ;;
-        ;; attn = e*X^T activations | similarity | attention
+        ;; attn = e*X^
         ;; Like address decoder neuron activations
         ;; shape: (n)
-
+        ;;
         attn
-        (torch/einsum "nd,nmd->nm" new-estimate
-                      (torch/resolve_conj
-                       (torch/conj books)))
-
+        (torch/real (torch/einsum "nd,nmd->nm"
+                                  new-estimate
+                                  (torch/resolve_conj (torch/conj
+                                                       books))))
+        ;; 4.
+        ;; update attention
+        ;;
+        ;; 4a
+        ;; Optionally bias
+        ;; att (torch/mul attn bias)
+        ;;
+        ;; 4b
+        ;; Optional non linearity
+        ;; p(x)
+        ;;
+        attn (non-linearity attn opts)
+        ;; recover pattern using attention
+        attn (py.. attn (type torch/cfloat))
         patt-update (torch/einsum "nm,nmd->nd" attn books)
-
-
-        ;; -------------------------
-
-
+        ;; ----------------------
+        ;; 5. update by γ
         pattern (torch/add (torch/mul update-ratio patt-update)
                            (torch/mul (- 1 update-ratio) estimates))
-
-        ;; --------------------------------------------------------------------
-
+        ;;
+        ;; pattern = ~ XX^T(e)
         ;; ----------------------------
         ;;
-        ;; 4.
+        ;; 6.
         ;; out = g(pattern)
-        ;; using g = sgn
-        outputs (torch/sgn pattern)
-
-
-        ;; + noise
-        outputs
-        (torch/add
-         outputs
-         (torch/mul
-          (torch/randn_like outputs)
-          (torch/mul
-           noise-level
-           (hd/normalize (hd/superposition books)))))
-
-        ;; --------------------------------------------
-
-
-
-        ]
-
-
-
-
-
-    ;; (swap!
-    ;;  attenuation
-    ;;  (fn [a] (torch/add a outputs)))
-
-
-
+        outputs (phasor-projection pattern)
+        ;; 7. + noise
+        outputs (if (nil? noise-level)
+                  outputs
+                  (torch/add outputs
+                             (torch/mul (torch/randn_like outputs)
+                                        noise-level)))]
     (torch/squeeze outputs)))
-
-
-;; Removed duplicate definition - see the first one above with device handling
 
 (defn resonator-fhrr
   "perform a resonator factorization of `x` with `books`.
@@ -257,244 +297,47 @@
 
   `max-iterations`: number of iterations before giving up.
 
+
+  + resonator options
+
+  see [[resonator-defaults]]  , [[resonator-step-fhrr]]
+
+
   "
-  ([x books] (resonator-fhrr x books {}))
-  ([x books
-    {:keys [max-iterations similarity-threshold]
-     :or {max-iterations 13 similarity-threshold 0.9}}]
+  ([x books] (resonator-fhrr x books resonator-defaults))
+  ([x books {:keys [max-iterations similarity-threshold] :as opts}]
    (let [initial-estimates (hd/superposition books)
          finish-info
            (fn [{:keys [n-iteration estimates]}]
              (cond (hd/similar? x
                                 (hd/normalize (hd/bind estimates))
                                 similarity-threshold)
-                     (let [factor-idxs (mapv (fn [x book] (hd/cleanup-idx x book)) estimates books)]
-                       {:factor-idxs factor-idxs-cpu
-                        :factors
-                        (into [] (map (fn [idx b] (py/get-item b (py.. idx item))) factor-idxs books))
+                     (let [factor-idxs (mapv (fn [x book]
+                                               (hd/cleanup-idx x
+                                                               book))
+                                         estimates
+                                         books)]
+                       {:factor-idxs factor-idxs
+                        :factors (into []
+                                       (map (fn [idx b]
+                                              (py/get-item
+                                                b
+                                                (py.. idx item)))
+                                         factor-idxs
+                                         books))
                         :finish-reason :factorized
                         :success? true})
                    (< max-iterations n-iteration)
                      {:finish-reason :max-iterations-reached
                       :success? false}
                    :else nil))]
-     (loop [{:keys [n-iteration estimates attenuation excitability] :as state}
-            {:estimates initial-estimates
-             :excitability (torch/ones_like initial-estimates)
-             :attenuation (torch/zeros_like initial-estimates)
-             :n-iteration 0}]
+     (loop [{:keys [n-iteration estimates] :as state}
+              {:estimates initial-estimates :n-iteration 0}]
        ;; ------------------------
        (if-let [info (finish-info state)]
          (merge state info)
-         (let
-             [estimates (resonator-step-fhrr x books estimates)
-              estimates
-              (->
-               estimates
-               (torch/mul excitability)
-
-               ;; E = E - attenuation
-               (hd/superposition (hd/negative attenuation)))
-
-              attenuation
-              ;; attenuation(t+1) = attenuation(t) * (1 - attenuation-decay-factor) + estimates(t+1) * attenuation-factor
-              (torch/add
-               (torch/mul attenuation 0.9)
-               (torch/mul estimates 0.5))
-
-              ;; exc(t+1) = exc(t) * (1 - exct-decay) + exct(t+1) * excitability-grow-factor
-              excitability
-              (torch/add
-               (torch/mul excitability 0.9)
-               (torch/mul estimates 1))
-
-              ;; attenuation (torch/add attenuation estimates)
-              ]
-
-
-             (println "attn: "
-                      (mag attenuation)
-                      " exc: "
-                      (mag excitability)
-                      "act: " (mag estimates))
-
-
-             (recur {:estimates estimates
-                     :attenuation attenuation
-                     :excitability excitability
-                     :n-iteration (inc n-iteration)})))))))
+         (let [estimates (resonator-step-fhrr x books estimates opts)]
+           (recur {:estimates estimates
+                   :n-iteration (inc n-iteration)})))))))
 
 (def factorize resonator-fhrr)
-
-(comment
-
-  (torch/sum (hd/magnitude (hd/seed)))
-  (torch/sum (hd/magnitude (hd/superposition (hd/seed 2))))
-
-  (def a (hd/seed))
-
-  (hd/similarity a (torch/sub a 1))
-
-  (hd/similarity a (torch/mul (- 1 0.1) a))
-  (hd/similarity a (torch/mul (- 1 0.9) a))
-
-  (torch/mul (torch/real (torch/mul a (torch/conj a))) 0.5)
-
-  (defn mag [a]
-    (torch/div
-     (torch/sum (torch/real (torch/mul a (torch/conj a))))
-     (:fhrr/dimensions hd/*opts*)))
-
-
-  (hd/similarity a (torch/mul (- 1 0.9) a))
-  (torch/mul (- 1 0.9) a)
-
-
-  (hd/similarity a (torch/mul a (torch/sub 1 a)))
-
-
-
-  ;; nothing active:
-  (hd/similarity a (torch/mul 0 a))
-
-  ;; everything active, no attenuation:
-  (hd/similarity a (torch/mul 1 a))
-
-
-
-  (def a1 (hd/normalize (hd/superposition [a (hd/seed) (hd/seed) (hd/seed)])))
-
-  (hd/similarity a (hd/inverse a))
-  (hd/similarity a (hd/inverse a1))
-  (hd/similarity a (torch/mul a (hd/inverse a1)))
-
-
-  (time
-   (doall
-    (for [book-size [100
-                     ;; 20 30 50
-                     ]]
-      (for [update-r [0.1]]
-        {:book-zise book-size
-         :results
-         (doall (for [n (range 1)]
-                  (do (def update-ratio update-r)
-                      (def books
-                        (hd/random [3 book-size
-                                    (:fhrr/dimensions hd/*opts*)]))
-                      (def origbooks books)
-                      (py.. books (size))
-                      (def a (py/get-item books [0 -1]))
-                      (def b (py/get-item books [1 -1]))
-                      (def c (py/get-item books [2 -1]))
-                      (def target (hd/bind [a b c]))
-                      (select-keys (resonator-fhrr target
-                                                   books
-                                                   {:max-iterations
-                                                    20})
-                                   [:n-iteration :success?]))))
-         :update-ratio update-r}))))
-
-
-
-
-
-
-
-  (time
-   (doall
-    (for [noise-v [0 0.005 0.1 0.2 0.3]
-          ;; (range 0 0.005 0.5)
-          ]
-      (for [n (range 3)]
-        (time (do (def noise-level noise-v)
-                  (def update-ratio 0.01)
-                  (def book-size 50)
-                  (def books
-                    (hd/random [3 book-size
-                                (:fhrr/dimensions hd/*opts*)]))
-                  (def origbooks books)
-                  (py.. books (size))
-                  (def a (py/get-item books [0 -1]))
-                  (def b (py/get-item books [1 -1]))
-                  (def c (py/get-item books [2 -1]))
-                  (def target (hd/bind [a b c]))
-                  (select-keys
-                   (resonator-fhrr target books {:max-iterations 20})
-                   [:n-iteration :success?])))))))
-
-
-  #_(
-     ({:n-iteration 21 :success? false}
-      {:n-iteration 9 :success? true}
-      {:n-iteration 7 :success? true})
-
-
-     ({:n-iteration 4 :success? true}
-      {:n-iteration 21 :success? false}
-      {:n-iteration 8 :success? true})
-
-     ({:n-iteration 11 :success? true}
-      {:n-iteration 8 :success? true}
-      {:n-iteration 9 :success? true})
-
-     ({:n-iteration 8 :success? true}
-      {:n-iteration 16 :success? true}
-      {:n-iteration 18 :success? true})
-
-
-     ({:n-iteration 21 :success? false}
-      {:n-iteration 21 :success? false}
-      {:n-iteration 21 :success? false}))
-
-
-  (time
-   (doall
-    (for [noise-v [0.15 0.2]]
-      (for [n (range 20)]
-        (time
-         (do (def noise-level noise-v)
-             (def update-ratio 0.01)
-             (def book-size 50)
-             (def books
-               (hd/random [3 book-size
-                           (:fhrr/dimensions hd/*opts*)]))
-             (def origbooks books)
-             (py.. books (size))
-             (def a (py/get-item books [0 -1]))
-             (def b (py/get-item books [1 -1]))
-             (def c (py/get-item books [2 -1]))
-             (def target (hd/bind [a b c]))
-             (select-keys
-              (resonator-fhrr target books {:max-iterations 20})
-              [:n-iteration :success?])))))))
-
-
-  (py.. books -device)
-
-  (torch/allclose
-   (py.. (hd/superposition books) (to :device :cpu))
-   (hd/superposition books))
-
-  (py.. books -device)
-  (py.. books -device)
-
-
-  (torch/allclose
-   (hd/superposition (py.. books (to :device :cpu)))
-   (py.. (hd/superposition books) (to :device :cpu)))
-
-  (torch/allclose books books)
-  (torch/conj books)
-
-  (hd/similarity
-   [(hd/superposition (py.. books (to :device :cpu)))
-    (py.. (hd/superposition books) (to :device :cpu))])
-
-  (torch/allclose
-   (py.. (torch/sum books) (to :device :cpu))
-   (torch/sum (py.. books (to :device :cpu))))
-
-  (def e (hd/superposition books))
-  (torch/allclose e (hd/superposition books))
-  (System/gc))
