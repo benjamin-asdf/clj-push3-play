@@ -12,7 +12,6 @@
    [libpython-clj2.require :refer [require-python]]))
 
 
-
 ;;
 ;; =================================================================
 ;;
@@ -26,7 +25,6 @@
 ;; =================================================================
 ;;
 
-
 ;;
 ;; 'Analogies are partial similarities between different situations
 ;; that support further inferences' [Gentner 1998].
@@ -37,11 +35,9 @@
 ;; Analogy desiderata:
 ;; -------------------------------
 
-
 ;; retrieval
 ;; -----------
 ;; Given C find A and B
-
 
 ;; mapping
 ;; -----------
@@ -60,8 +56,6 @@
 ;; Use A to advance the concept C
 
 ;;
-
-;;
 ;; CST:
 ;;
 ;; - points denote objects
@@ -76,8 +70,6 @@
 
 ;; ----------------------------------------------------------------
 ;; ---
-
-
 ;;
 ;; Domain `D`:
 ;; A `k`-dimensional space (low dimensional)
@@ -87,7 +79,6 @@
 ;; k = 3
 ;; k-bases = { hue, saturation, brightness }
 ;;
-;;
 ;; concept: a point in D.
 ;;
 ;; e.g. point-a, point-b, point-c
@@ -96,212 +87,214 @@
 ;;
 
 ;; let's stay with color example.
-
-;; (def base-hdv (memoize (fn [_] (hd/seed))))
-
 ;; k = 3: hue, saturation, brightness
-(defonce bases-codebook (hd/seed 3))
-(defn base-hdv [k]
-  (torch/index_select bases-codebook 0 (torch/tensor [k])))
 
-;; concrete:
+(defn bases-codebooks
+  "Returns codebook-lookup info containing `k` codebooks, each with an array of fractionol powers.
 
-#_(defn encode-point-concrete
-    [[hue saturation brightness]]
-    (hd/multibind
-     [(ssp/fractional-power-encoding (base-hdv 0) hue)
-      (ssp/fractional-power-encoding (base-hdv 1) saturation)
-      (ssp/fractional-power-encoding (base-hdv 2) brightness)]))
+  `k`: Codebook count
+  `low`: The fractional power range start.
+  `high`: dito end
+  `resolution`: The fractional power step size.
+
+  `basis-seeds`: Optinally 3 hypervedtors that serve as the basis for the codebooks.
+
+  codebook-resolution = (count (range low (inc high) resolution))
+
+  Produces books with shape [k,codebook-resolution,d]
+
+  where d is the hyperdimensions.
+
+
+  example:
+
+  k    = 3
+  low  = -10
+  high = 10
+  resolution = 0.1
+
+   book 1:
+   basis: x
+
+   +----------------------------------------------------------+
+   |  +-------------+                                         |
+   |  | - -- ---    | x^-10                                   |
+   |  |             | x^-9.9                                  |
+   |  |             | ...                                     |
+   |  |             | x^0                                     |
+   |  |             | x^0.1                                   |
+   |  |             | ...                                     |
+   |  |             |                                         |
+   |  |             | x^(~11)                                 |
+   |  +-------------+                                         |
+   +----------------------------------------------------------+
+          book-1,      ...                            book-k
+
+
+  returns:
+   :values
+     a tensor containing the fractional powers used
+
+     range:  [low,low+resolution,low+resolution*2,...high+1]
+
+
+  "
+  [{:keys [k resolution high low basis-seeds]}]
+  (let [;; eps to include the highest value, currently not needed
+        ;; because of the inc.
+        epsilon 1e-5
+        ;; not sure why, but the corner of the book never got
+        ;; factorized. As if by a off-by-one error but I didn't
+        ;; figure out where.
+        high (+ high epsilon 1)
+        values
+          (torch/arange low high resolution :device *torch-device*)
+        basis-seeds (or basis-seeds (hd/seed k))]
+    {:basis-seeds basis-seeds
+     :books (fpe/fpe basis-seeds values)
+     :resolution resolution
+     :values values}))
+
 
 (defn encode-point
-  "
-  Returns a hdv representing the concept `P` given by domain point `p`.
+  "Returns a hdv representing the concept `P` given by domain point `p`.
 
   `p`: A real valued vector representing a low dimensional point in the concept domain `D`.
 
-  `bases`: An indexed lookup of basis hypervectors.
+  `bases`: A sequence of basis vectors.
    You need `k` basis vectors for the encoding of the k-dimensional domain `D`.
 
    dim(D) == dim(p) == count(bases) == k
 
    Example concept encoding for `purple`:
 
-   PURPLE = x^6.2 ⊗ y^-6.2 ⊗ z^5.3
+   PURPLE = x^6.2 ⊙ y^-6.2 ⊙ z^5.3
 
-
-   Like this:
-
-
-   ;; k == 3, k-bases = { hue, saturation, brightness }
-
-   (defonce bases-codebook (hd/seed 3))
-   (encode-point [6.2 -6.2 5.3] (into [] bases-codebook))
-   ;; => P∈H
-
+    k == 3, k-bases = { hue, saturation, brightness }
   "
   [p bases]
-  ;;
-  ;; dim(p) == count(bases) == k
-  ;;
   (hd/bind (map (fn [b v] (fpe/fpe b v)) bases p)))
 
-
-;; =====================================
-
-(comment
-  ;; the prototype location (purple)
-  (def p [6.2 -6.2 5.3])
-  )
-
-;; ----------------------
-
 (defn encode
-  ""
-  [[pa pb pc :as domain-points]]
-  ;; output F
-  ;;
-  )
+  "Returns a hdv representing the concept `P` given by domain point `p`.
 
+  `p`: A real valued vector representing a low dimensional point in the concept domain `D`.
 
-;;
-;; Category based analogy:
-;;
+  Like [[encode-point]] but takes the return value of [[bases-codebooks]] for convinience.
+  "
+  [p {:keys [bases]}]
+  (encode-point p bases))
 
-;; Obtaining X:
-;;
-;; The concepts in this example are already in same category (color).
-;;
-;;
-;; Parallelogram model [Rumelhart and Abrahamson, 1973]
-;;
-;;
+;; -----------------------
+;; Category based analogy
+;; -----------------------
 
 ;; Eqn 5: pX = pC - pA + pB
-
-
+;;
 ;; for
-
+;;
 ;; PURPLE : BLUE :: ORANGE : X
-
+;;
 ;; Eqn 6: x = (orange ⊗ purple^-1)  ⊗ blue
 ;;
 
+;;
+;; Algorithm 3 find (using parallelogram method)
+;; 1: Input: a, b, c
+;; 2: Output: x
+;; 3: x ← (c ⊛ a−1 ) ⊛ b
+;; 4: return x
+;;
+;; direct translation:
+;; (hd/bind (hd/unbind c a) b)
 ;;
 (defn categorical-mapping
   "
   Returns a hypervector that is the query of outcome of categorical analogical mapping:
 
-  Given A, B, C find X
-
   A : B :: C : X
+
+  Given A, B, C find X
 
   a, b and c are hypervectors
 
-  Using Parallelogram model [Rumelhart and Abrahamson, 1973]
+  Assumes that the concepts arre in the same catergoy, e.g. color.
 
+  PURPLE : BLUE :: ORANGE : YELLOW
+
+  Using Parallelogram model [Rumelhart and Abrahamson, 1973].
   "
   [a b c]
-  ;; Algorithm 3 find (using parallelogram method)
-  ;; 1: Input: a, b, c
-  ;; 2: Output: x
-  ;; 3: x ← (c ⊛ a−1 ) ⊛ b
-  ;; 4: return x
-  ;; (hd/bind (hd/bind c (hd/inverse a)) b)
-
-  (hd/bind (hd/unbind c a) b))
-
+  (hd/bind [(hd/inverse a) b c]))
 
 ;;
 ;; with x in hand, decode using a resonator network
 ;;
 
 (defn decode
-  "Returns a concept point in the domain D given a hypervector x.
+  "Returns a concept point, when found, in the domain D given a hypervector x.
 
+  Second arg is like the return of [[bases-codebooks]].
+  This returns nil, when factorizaiton fails.
+  In that case the `x` is outside of the domain of codebooks,
+  or the factorization problem is outside of the operational capacity of the resonator.
 
-  opts are like the return of [[bases-codebooks]].
+  k=3, m=50 is within capacity.
+
 
   shapes:
 
   x: (d)
   values: (r)
-  books: (k,r,d)
+  books: (k,m,d)
 
   k: Domain dimensions = D
-  r: book resolution
+  m: book resolution
   d: hyperdim
 
   "
   [x {:keys [books values]}]
   (when-let [factors-idxs (:factor-idxs (resonator/factorize x books))]
-    (torch/index_select values -1 factors-idxs)))
-
-
-;; resolution means step size
-
-(defn bases-codebooks
-  [{:keys [k resolution high low basis-seeds]}]
-  (let [epsilon 1e-5
-        values (torch/arange low
-                             (+ high epsilon)
-                             resolution
-                             :device
-                             *torch-device*)
-        basis-seeds (or basis-seeds (hd/seed k))]
-    {:books
-     (fpe/fpe basis-seeds values)
-     :values values
-     :basis-seeds basis-seeds}))
-
-
-
-
-
-
-
+    (->
+     (torch/index_select values -1 (torch/tensor factors-idxs))
+     (torch/round :decimals 2))))
 
 (comment
   (do
-    (def scaling-constant 10)
-    (defn preprocess-color [hue saturation brightness]
-      [(* (Math/cos hue) (/ saturation scaling-constant))
-       (* (Math/sin hue) (/ saturation scaling-constant))
-       (/ brightness scaling-constant)])
-    (def p-purple (preprocess-color (* 315 (/ Math/PI 180)) 87 53))
-    (def p-blue   (preprocess-color (* 270 (/ Math/PI 180)) 1 5))
-    (def p-orange (preprocess-color (* 30  (/ Math/PI 40)) 88 1)
-      ;; [-6.222539674441618 6.222539674441619 1/10]
-      )
-    (def p-yellow (preprocess-color (* 73 (/ Math/PI 180)) 2 97))
-    (def basis-seeds (hd/seed 3))
+    (def p-purple [6.2 -6.2 5.3])
+    (def p-blue [0 -10 5])
+    (def p-orange [6.7 5.7 10])
+    (def p-yellow  [0.6 1.8 9.7])
     (def B
       (bases-codebooks
-       {:basis-seeds basis-seeds
-        :high 10
+       {:high 10
         :k 3
         :low -10
         :resolution 0.1}))
-    (def P (encode-point [1.0 1.0 1.0] basis-seeds))
     (let [[purple blue orange yellow]
           (mapv
-           #(encode-point % basis-seeds)
+           #(encode-point % (:basis-seeds B))
            [p-purple p-blue p-orange p-yellow])
           x
-          (categorical-mapping purple blue orange)
-          #_(hd/bind
-             (hd/bind orange (hd/inverse purple))
-             blue)]
-      ;; (decode x B)
-      (hd/similarity purple blue)
-      (hd/similarity x orange)
-      (hd/similarity x yellow)
-      (hd/similarity orange yellow)
-      (hd/similarity orange purple)
-      (decode P B)
-      (decode orange B))))
-
-
-
+          (categorical-mapping purple blue orange)]
+      [p-yellow
+       (decode x B)
+       (py.. (hd/similarity x yellow) item)]))
+  ;;
+  ;; [[0.6 1.8 9.7]
+  ;;  tensor([0.5000, 1.9000, 9.7000])   <-  outcome is not as close to yellow as it could be ?
+  ;;  0.9674046635627747]
+  ;;
+  ;; ------------
+  ;;
+  ;; PURPLE : BLUE :: ORANGE : X
+  ;;
+  ;; Q: find x.
+  ;;
+  ;; A: 'yellow is to orange like blue is to purple'
+  ;;
+  ;; ------------
+  )
 
 
 ;; Solving a Property-based Analogy
@@ -320,212 +313,94 @@
 ;;    Would be color domain dimensions for BANANA (i.e. YELLOW)
 ;;
 
+;; -> this can be done with a record represenation
+;; is a Dollar in Mexico situation
 
-
-
-
-
-
-;; -----------------------------------------
-
-
-
-;; Observation:
-;; spatial_semantic_pointer.clj is a HC with k=2
+;; ------------
+;; It is interesting to consider this generatively, if we find a point X,
+;; but no concept in long term memory corresponds to X, we are free to take this
+;; occurance as prototype of a fresh symbol X.
+;; We can imagine that Hofstadter or Minsky analogy maturation processes
+;; are implemented in terms of such moves.
 ;;
-;;
-;; where
-;; ⊗ is bind
-;; x^k is fractional power encoding of x by k.
-;;
-;;
-;;
-;; function 'readout' is equivalent to decode.
-;; Alg also needs to build reso
-;;
+(defn property-based-mapping
+  "
+  Finds the analogical element of `prop` in `b`, given `a`.
+  `a` and `b` are record-like hdvs, `prop` is either a key or a value
+  in the domain of the record.
 
 
+  Example:  APPLE : RED :: BANANA : X
 
+  (property-based-mapping apple red banana)
 
+  output: YELLOW
 
+  Observe this is the same as
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-;; --------
-;; working on it.
-;; need a better resonator
-;;
-
-
-
-
-
-
-
-
-
-
-
-
-
+  'what is the dollar in mexico?'.
+  "
+  [a prop b]
+  ;; second, use the key to query record b
+  #_(hd/unbind b
+               ;; first, find the key associated with prop in record a
+               (hd/unbind a prop))
+  ;; this reduces to this:
+  #_(hd/bind [b (hd/inverse a) prop])
+  ;; ..
+  ;; it is the same as [[categorical-mapping]]
+  (hd/bind [(hd/inverse a) prop b]))
 
 (comment
-  (do
-    (def B (bases-codebooks {:high 2 :k 2 :low 0 :resolution 0.1}))
-
-    (def a (encode-point [1.0 0.0] (:basis-seeds B)))
-    (def b (encode-point [0.0 1.0] (:basis-seeds B)))
-    (def c (encode-point [1.0 1.0] (:basis-seeds B)))
-    (def d (encode-point [0.0 1.0] (:basis-seeds B)))
-    (hd/similarity
-     d
-     (hd/unbind (hd/bind a c) b)))
-
-
-
-
-
-  (do
-    (def B (bases-codebooks {:high 2 :k 2 :low 0 :resolution 0.1}))
-    (py.. (:books B) (size))
-    ;; torch.Size([2, 21, 10000])
-    (def a
-      (hd/bind
-       (fpe/fpe (first (:basis-seeds B)) 1.0)
-       (fpe/fpe (second (:basis-seeds B)) 1.0)))
-    (def b
-      (hd/bind
-       (fpe/fpe (first (:basis-seeds B)) 1.5)
-       (fpe/fpe (second (:basis-seeds B)) 1.0)))
-    (def c
-      (hd/bind
-       (fpe/fpe (first (:basis-seeds B)) 1.0)
-       (fpe/fpe (second (:basis-seeds B)) 1.0)))
-    (decode (hd/bind (hd/unbind c a) b) B)
-    (decode b B)
-    (:factor-idxs (resonator/factorize
-                   b
-                   (:books B)
-                   {:similarity-threshold 0.9}))
-
-
-
-    )
+  ;;
+  ;;  The example merely follows it's own internal consistency.
+  ;;  BANANA is a made up symbol for convinience. We imagine we
+  ;;  had a cognitive system where a mature concept BANANA
+  ;;  comes either from long term or perception.
+  ;;
+  (let [red (hd/seed)
+        color-key (hd/seed)
+        yellow (hd/seed)
+        shape-key (hd/seed)
+        round (hd/seed)
+        banana-shaped (hd/seed)
+        apple (hd/superposition [(hd/bind color-key red)
+                                 (hd/bind shape-key round)])
+        banana (hd/superposition [(hd/bind color-key yellow)
+                                  (hd/bind shape-key banana-shaped)])]
+    ;; apple : red :: banana : X
+    ;; X is yellow
+    (hd/similarity yellow (property-based-mapping apple red banana))))
 
 
 
 
 
 
+;; ---------------------------
+
+(comment
+  (for [res (range 0.1 1 0.1)]
+    (do (def B (bases-codebooks {:high 10 :k 3 :low -10 :resolution res}))
+        (def b
+          (hd/bind [(fpe/fpe (first (:basis-seeds B)) 10.0)
+                    (fpe/fpe (second (:basis-seeds B)) 2.2)
+                    (fpe/fpe (first (rest (rest (:basis-seeds B)))) 9.0)]))
+        [res (vec (py.. (:books B) (size)))
+         (:success? (resonator/factorize b (:books B)))
+         (vec (py.. (decode b B) (tolist)))]))
 
 
-  (do
-    (def B (bases-codebooks {:high 10 :k 2 :low -10 :resolution 0.1}))
-    (py.. (:books B) (size))
-    ;; torch.Size([2, 21, 10000])
-    (def a
-      (hd/bind (fpe/fpe (first (:basis-seeds B)) 1.0)
-               (fpe/fpe (second (:basis-seeds B)) 1.0)))
-    (def b
-      (hd/bind (fpe/fpe (first (:basis-seeds B)) 10.0)
-               (fpe/fpe (second (:basis-seeds B)) 1.0)))
-    (def c
-      (hd/bind (fpe/fpe (first (:basis-seeds B)) 1.0)
-               (fpe/fpe (second (:basis-seeds B)) 1.0)))
-    (decode (hd/bind (hd/unbind c a) b) B)
-    (:factor-idxs
-     (resonator/factorize b (:books B) {:similarity-threshold 0.9}))
-    (fpe/fpe (first (:basis-seeds B)) 2.0)
-    (resonator/factorize
-     (hd/bind
-      (-> B :books (py/get-item [0 -1]))
-      (-> B :books (py/get-item [1 -1])))
-     (:books B)
-     ;; (second (torch/split (:books B) 18 :dim -2))
-     )
-    (hd/similarity
-     (fpe/fpe (first (:basis-seeds B)) 10.0)
-     (-> B :books (py/get-item [0 -1])))
-
-    (hd/similarity
-     (fpe/fpe (second (:basis-seeds B)) 10.0)
-     (-> B :books (py/get-item [1 -1])))
-    (decode
-     (hd/bind
-      (fpe/fpe (first (:basis-seeds B)) 10.0)
-      (fpe/fpe (second (:basis-seeds B)) 10.0))
-     B)
-
-    (decode b B))
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-  (do
-    (def B (bases-codebooks {:high 10 :k 3 :low -10 :resolution 0.1}))
-    (def b
-      (hd/bind [(fpe/fpe (first (:basis-seeds B)) 9.0)
-                (fpe/fpe (second (:basis-seeds B)) 9.0)
-                (fpe/fpe (first (rest (rest (:basis-seeds B)))) 9.0)]))
-    (decode b B))
-
-  (do
-    (def B (bases-codebooks {:high 10 :k 3 :low -10 :resolution 0.1}))
-    (def b
-      (hd/bind [(fpe/fpe (first (:basis-seeds B)) 9.0)
-                (fpe/fpe (second (:basis-seeds B)) 10.0)
-                (fpe/fpe (first (rest (rest (:basis-seeds B)))) 9.0)]))
-    (decode b B))
-
-
-
-
-
-
-
-
-  (do
-    (def B (bases-codebooks {:high 5 :k 3 :low -1 :resolution 1}))
-    (hd/similarity
-     (py/get-item (:books B) [1 -1])
-     (fpe/fpe (second (:basis-seeds B)) 5))
-    (def b
-      (hd/bind (fpe/fpe (first (:basis-seeds B)) 5)
-               (fpe/fpe (second (:basis-seeds B)) 5)))
-    (decode b B))
-
-
-
-
-
-
-  )
+  '([0.1 [3 211 10000] true [10.0 2.200000047683716 9.0]]
+    [0.2 [3 106 10000] true [10.0 2.200000047683716 9.0]]
+    [0.30000000000000004 [3 71 10000] true
+     [10.100000381469727 2.299999952316284 8.90000057220459]]
+    [0.4 [3 53 10000] true [10.0 2.0 9.199999809265137]]
+    [0.5 [3 43 10000] true [10.0 2.0 9.0]]
+    [0.6 [3 36 10000] true [9.800000190734863 2.0 9.199999809265137]]
+    [0.7 [3 31 10000] true
+     [10.300000190734863 1.899999976158142 8.899999618530273]]
+    [0.7999999999999999 [3 27 10000] true [10.0 2.0 9.199999809265137]]
+    [0.8999999999999999 [3 24 10000] true
+     [9.800000190734863 2.6000001430511475 8.899999618530273]]
+    [0.9999999999999999 [3 22 10000] true [10.0 2.0 9.0]]))
