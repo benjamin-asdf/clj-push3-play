@@ -169,6 +169,9 @@ https://arxiv.org/abs/2411.08684
 - wip
 
 
+
+
+
 # Ideas / want to do
 
 - explore algs where the variation operator is itself evolved ['metaevolution'](ideas/metaevolution.org).
