@@ -306,31 +306,33 @@
   "
   ([x books] (resonator-fhrr x books resonator-defaults))
   ([x books {:keys [max-iterations similarity-threshold] :as opts}]
-   (let [initial-estimates (hd/superposition books)
+   (let [{:keys [max-iterations similarity-threshold] :as opts}
+         (merge resonator-defaults opts)
+         initial-estimates (hd/superposition books)
          finish-info
-           (fn [{:keys [n-iteration estimates]}]
-             (cond (hd/similar? x
-                                (hd/normalize (hd/bind estimates))
-                                similarity-threshold)
-                     (let [factor-idxs (mapv (fn [x book]
-                                               (hd/cleanup-idx x
-                                                               book))
+         (fn [{:keys [n-iteration estimates]}]
+           (cond (hd/similar? x
+                              (hd/normalize (hd/bind estimates))
+                              similarity-threshold)
+                 (let [factor-idxs (mapv (fn [x book]
+                                           (hd/cleanup-idx x
+                                                           book))
                                          estimates
                                          books)]
-                       {:factor-idxs factor-idxs
-                        :factors (into []
-                                       (map (fn [idx b]
-                                              (py/get-item
-                                                b
-                                                (py.. idx item)))
-                                         factor-idxs
-                                         books))
-                        :finish-reason :factorized
-                        :success? true})
-                   (< max-iterations n-iteration)
-                     {:finish-reason :max-iterations-reached
-                      :success? false}
-                   :else nil))]
+                   {:factor-idxs factor-idxs
+                    :factors (into []
+                                   (map (fn [idx b]
+                                          (py/get-item
+                                           b
+                                           (py.. idx item)))
+                                        factor-idxs
+                                        books))
+                    :finish-reason :factorized
+                    :success? true})
+                 (< max-iterations n-iteration)
+                 {:finish-reason :max-iterations-reached
+                  :success? false}
+                 :else nil))]
      (loop [{:keys [n-iteration estimates] :as state}
               {:estimates initial-estimates :n-iteration 0}]
        ;; ------------------------
@@ -341,3 +343,17 @@
                    :n-iteration (inc n-iteration)})))))))
 
 (def factorize resonator-fhrr)
+
+(comment
+
+  (do
+    (def books (hd/random [3 10 (hd/dimenions)]))
+    (def a (py/get-item books [0 -1]))
+    (def b (py/get-item books [1 -1]))
+    (def c (py/get-item books [2 -1]))
+    (def x (hd/bind [a b c]))
+    (factorize x books))
+
+
+
+  )

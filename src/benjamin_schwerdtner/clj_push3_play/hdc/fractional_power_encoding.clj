@@ -8,12 +8,8 @@
 (require-python '[torch :as torch]
                 '[torch.nn.functional :as F])
 
-
-
-
 ;; for cleanup:
 ;; https://arxiv.org/html/2412.00488v1
-
 
 (defn fractional-power-encoding
   "Computes the fractional power of a hypervector x raised to power k.
@@ -116,7 +112,7 @@
   ;; (*,k,d)
   (let [k-tensor (cond (number? k) (torch/tensor [k]
                                                  :device
-                                                 *torch-device*
+                                                   *torch-device*
                                                  :dtype torch/float32)
                        (coll? k) (torch/tensor (vec k)
                                                :device *torch-device*
@@ -125,13 +121,14 @@
         x (if (= 1 (count (vec (py.. x (size)))))
             (torch/unsqueeze x 0)
             x)
-        ;; Get the phase angles of the complex numbers
         angles (torch/angle x)
         scaled-angles (torch/einsum "bd,k->bkd" angles k-tensor)
-        ;; (torch/mul angles k-tensor)
         result (torch/complex (torch/cos scaled-angles)
                               (torch/sin scaled-angles))]
     (py.. result (squeeze -2))))
+
+
+
 
 
 (def fpe fractional-power-encoding)
@@ -159,12 +156,12 @@
   ;; tensor([[ 0.0011, -0.0061, -0.0053],
   ;;       [ 1.0000, -0.0117, -0.0034]])
 
-  (hd/similarity (fpe (py/get-item x [1]) 2) sp)
+  (hd/similarity (fpe x 3) sp)
 
-  (hd/similarity
-   (py/get-item sp [0 0])
-   (fractional-power-encoding (py/get-item x 0) 1))
+  (fpe
+   x
+   (torch/tensor [1 2 3])
+   )
 
-  (hd/similarity
-   (py/get-item sp [1 0])
-   (fractional-power-encoding (py/get-item x 1) 1)))
+
+  )

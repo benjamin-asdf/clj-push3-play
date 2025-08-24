@@ -2,7 +2,11 @@
   (:require
    [benjamin-schwerdtner.clj-push3-play.hdc.fhrr :as fhrr]
    [benjamin-schwerdtner.clj-push3-play.hdc.config :refer [*torch-device*]]
-   [benjamin-schwerdtner.clj-push3-play.hdc.fpe :refer [fractional-power-encoding]]
+
+   [benjamin-schwerdtner.clj-push3-play.hdc.fractional-power-encoding
+    :refer [fractional-power-encoding]]
+
+
 
    [libpython-clj2.require :refer [require-python]]
    [libpython-clj2.python :refer [py. py..] :as py]))
