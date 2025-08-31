@@ -2,9 +2,11 @@
 #+AUTHOR: Benjamin Schwerdtner
 #+OPTIONS: toc:2 num:nil
 
-Another Clojure implementation of the [[https://faculty.hampshire.edu/lspector/push3-description.html][push3]] programming language.
+- Another Clojure implementation of the [[https://faculty.hampshire.edu/lspector/push3-description.html][push3]] programming language.
+- Analogical reasoning, Hypderdimensional computing as submodules of a push paradigm, explorations.
 
 Push is a simple, stack based language designed as the target domain for program synthesis tasks.
+
 
 * Clojush
 
