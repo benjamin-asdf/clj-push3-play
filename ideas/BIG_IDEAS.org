@@ -54,7 +54,7 @@ Given an environment =env= (niche), G has a =fitness=, determining the number of
 - For example: With genetic markers, mark part of the genome essential and mutate it less, mark other part 'adaptive' and mutate more.
 - Existing example: [[https://www.sciencedaily.com/releases/2005/01/050106114650.htm][Jumping Genes and the Immunesytem]]
 
-- I guess 'evolvability' should be a cutting edge concept:
+- I guess 'evolvability' is a cutting edge concept in biology
 
 Experimental evolution of evolvability
 
