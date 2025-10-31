@@ -161,7 +161,9 @@ Through this Darwinian process the book is created.
 
 ** Unconventional Information Flows
 
-- Biology: Jumping Genes, the Virosphere etc.
+- Biology: the Virosphere etc.
+- Jumping genes show new 'places' for mutation to occur.
+
 - Because of =Mut= (Evolability) as adaptation, unconventional information flows can be evolved, too.
 - ? Model tree of life with non-zero horizontal gene transfer between gene pools (pop genetics paradigm)?.
 - ? Model =Mut= as separate evolving genome from =domain-genome= ?
