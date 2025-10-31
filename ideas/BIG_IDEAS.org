@@ -262,14 +262,8 @@ An activity pattern surviving for...
 | years - decades | rich network of memories, having a life   |
 
 
-* TODO Items
-** TODO Figure out the essential components of open ended evolution
-** TODO Extract brain adaptations for software synthesis
-** TODO Consider cultural embedding for machines
+* Big goals:
 
-* Notes
-- The Holy Grail Of Software Synthesis (commented out in original)
-- Approach 1: Figure out what evolved adaptations the brain uses for it's software synth. task
-- Extract the essential features and use them in a model
-- It is possible that the essentials include a cultural context
-- In this case part of the challenge could be embedding the machine in a useful way in human culture?
+- Figure out the essential components of open ended evolution
+- Extract brain adaptations for software synthesis
+- Consider cultural embedding for machines
