@@ -179,10 +179,10 @@ Through this Darwinian process the book is created.
   We say the replicator is /adapted/ to the niche.
 
 - An /adaptation/ is a /design/ with the property that small changes in the adaptation cause it to not be adaptative anymore.
-- For this property to make sense, the /alternatives/ of the design must be /possible/.
+- The /alternatives/ of the design must be /possible/, natural selection requires /variations/.
 - We call the /state space/ of the /search process/ of evolution /design space/.
 - Similarly, for a /gene/ to be /for/ something. There must be alternative genes for variations of the /for/ in question (Dawkins).
-- /Design/ is hard to fake, hard to vary, and hard to come by.
+- /Design/ is hard to fake, hard to vary, and hard to come by [Popper].
 - The /hard to vary/ property can be observed indirectly via [[https://en.wikipedia.org/wiki/Convergent_evolution][Convergent Evolution]] in nature.
   Given a niche, this is a good design - and only very slight deviations are permissible.
 
