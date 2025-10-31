@@ -8,7 +8,7 @@ Adaptationism, Abstract replicator theory (Dawkins 1976, 1982) and Gradualism (D
 - Have a problem with explaining sex.
 - Population Genetics models do not incoorparate symbiogenesis, horizontal gene transfer (Virusphere).
 - Population Genetics models are based on changes in gene frequency, but new genes have to come from somewhere.
-- Doesn't explain all aspects of /beauty in nature/? Dawkins would disagree, but
+- Doesn't explain all aspects of /beauty in nature/? Dawkins would agrees with the sentiment.
 - I suspect that theoretical evolutionary biologists have a richer set of algorithms in mind when they think of natural selection,
   but that the algorithms are not formulated yet.
 
@@ -78,74 +78,18 @@ Classical TOL:
 
 [[edraw:data=H4sIAJlfj2gAA8VVy46bMBT9FcuzaaUh2EAzJAqR2lU2VaUu6GPnggErxEa2E5h+fe8FMpmmM+qqqXjY9xGfc4+vycadajIcWu0y2njfrcOw7/tFHy+MrcOIMRZCBp1S1kOr9P6lRL5arcIxSkmvSt9k9N2SUdJIVTc+o0kExklap4zOKF9wut2UsnJElRmVpRV9gCZ4D8Lupf3dH7BAWGt6SqbolwlhebZ3Mwo4OiudtCf53nWy8J+FVyaj2mgJ8Er2H8yQ0YAzgk+ENyVWVl8zOk2+jRNjldSwnjh6Q4nz1uzleZXJCuYiOSWVatuM3nGGFxTQCd8QYP8RIO6DB0S6fyDJPftOSbjdhBNlmGDB240FmmQYYR/H96vyXST5IYp9bc1Rl9fsZjJVVY1g9fMfmfIR6Mm2VZ2TV3VEl4XOlTytleIF6gC9Ua5hGguw4wQn6EBPOBc/VRhIDdhH2765+2Mj317r+Dr+VBfqGaWM8CXbxYyRGPYOwEm8ZDmHkYOd3I5CtITWSS7QnN0GHjs2BXjGdhxGpAIUdkAhB0o5UopwzoAaxiEPBshCrpNUOSZDIE9ZDp4bsB4FSv9CwMvBE3wFQheNsRk9qLJssaWN9kElDqqFhnNCuwAOuKrmgFM/AZun1+cQP1hr14kCoudvwnjCYjxX2LEpHNZPVtWbEGH//cZBy+bQujkAN9HlfmnjUKpLwv/XbJYsQclK6QqQR2jvzsrdbu/YMyKAJZ039olGWMMDf1bbX1By7DDUBgAA]]
 
-In Ascii for github:
-
-#+begin_src
-
- +          +                               +        descendants
- |          |                               |
- |          |                               |
- |          |                               |
- +---+------+                   +-----------+
-     |                          |
-     |                          |
-     |                          |
-     |                          |
-     |                          |
-     +------------+-------------+
-                  |
-                  |
-                  |
-                  |
-                  +                                 ancestors
-                Orig
-
-#+end_src
 
 Updated TOL (subversive):
 
 [[edraw:data=H4sIANxpj2gAA71W32+bMBD+Vyz3ZZNKsUlK0yogbdKkPGyatEnZjzcKBqwQO7LdkOyv352BtM2SqQ8tAgO2L/6+++58ztxuK7JbN8omtHZucxeGbdtetZMrbaowYoyFYEE7k7tdI9XqlCG/vb0N/SwlrSxcndCYx5TUQla1gw67pmQrjJVaJZRfcZrOC1FaIouEisJkbYBdGF1nZiXM8/GABZkxuqWkm/3RIwz9xYBCycYIK8xWfLAbkbtvmZM6oUorAfBStB/1LqEBZwRbhDclRpQ/E9p9/PIf2kihYL3swWlKrDN6JYZVul7QO8kpKWXTJPSCM7zAgU3magLsvwDEZXCDSJc3ZHrJflMSpvOwowwf6HA6N0CT7Dzs3j/PyvcoyX2WryqjH1RxzK4nU5alB6ue/kgXe6AnmkZurDjyI3pcaPDksNYML1AH6Hm5dt07h/4kxg8cmDIP6J3vPAyEAuwH07y7+CeQ7491PI/f+YV6AgaZTNlyEkFjrI6e3ctoBi2GBiYR9p+bLDnMc5jnMM+xz9gShuK3Jz7xicYWQPrtRZp1WFHv16uGO2JDuMfwhDFyImZ9NH3klhjqkZiApsBmgWxGxcakx3hGB/wFqLHg2IdxGIpP5v4CjP6X9csRdizvEx/ACe/xnNg5go8gU3mtTULXsigarF1auaDM1rKBVLOZsgFUcln2E1b+ASg+Oy64eDLd2U2Ww+xQ/H0p9SUJcxWilH7fr+chop4iYF1m3KvjT+MOf4qHggMLRfIms3aox54CnJjiYAUkCQkIvO6lroQSVlryaQtHEXDHBV62jlf5JXYFqiTWNP1qZAXA+JKK6JJ8lqU4Qn6q3ksUOB/iJ0qeU3yPR57neY3CFMLmkJuZcnZ0Hr5oD0RgHWGdNgcab7l7YNMAKGxvLD6ERyPvn+th/4AAKWYjKRvdjuF4d4TVI1RXqIxjQWEhj7pCPm4cJ7MujpjIfqcPIQwraPDnPv0LetusYgQMAAA=]]
 
 
-#+begin_src
-
-+              +     +                      +       descendants
-|              |     |                      |
-|              |     |                      |
-|              +--+--+                      |
-|                 |             +-----------+
-|                 |             |
-|                 |             |
-|                +--+           |
-+----+-- -- - - -|  | -- -- - --+
-     |           +--+           |
-     |           Sym            |
-     |                          |
-     |                          |
-     |                          |
-     +------------+-------------+
-                  |
-                  |
-                  |
-                  |
-                  +                                 ancestors
-                Orig
-
-
-
-
-Sym    - Symbiogenesis Event
-Orig   - Origin of Life Event
----    - Gene flow
-
-#+end_src
 
 ** Multi Dimensional Selection
 
 - Classical Fitness: A function that returns a value given a genome =G=:
 
 #+begin_src
-
   fitness(G) = r ; r ∈ R
 #+end_src
 
@@ -200,9 +144,7 @@ Through this Darwinian process the book is created.
 - We need algorithms that reflect these aspects of natural selection, which are apparently obvious to the biologist.
 - Claim: Biologists already have a richer alg in mind for natural selection. Just the translation into computer algorithms isn't done yet.
 
-
 -----------------------------------------------------
-
 
 ** Unconventional Information Flows
 
