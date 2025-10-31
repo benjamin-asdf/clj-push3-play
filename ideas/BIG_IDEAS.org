@@ -9,11 +9,11 @@ Adaptationism, Abstract replicator theory (Dawkins 1976, 1982) and Gradualism (D
 
 - Don't explain evolutionary open endedness (creativity).
 - Failed to inspire evolutionary algorithms that work.
-- Don't explain why evolution works /so well/.
+- Don't explain why evolution works /so well/ | doesn't explain all aspects of /beauty in nature?/.
+  Even Dawkins said he understands if somebody expressed this sentiment.
 - Have a problem with explaining sex.
 - Population Genetics models do not incoorparate symbiogenesis, horizontal gene transfer (Virusphere).
 - Population Genetics models are based on changes in gene frequency, but new genes have to come from somewhere.
-- Doesn't explain all aspects of /beauty in nature/? Dawkins would agrees with the sentiment.
 - I suspect that theoretical evolutionary biologists have a richer set of algorithms in mind when they think of natural selection,
   but that the algorithms are not formulated yet.
 
