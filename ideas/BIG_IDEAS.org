@@ -1,7 +1,7 @@
 Everything worth saying is worth saying on 1 page.
 To the extend it is not condensed down, It is not fleshed out.
 
-Cutting edges of evolutionary computing / algorithmic structure of natural selection as far as I currently conceptualize them.
+Cutting edges of evolutionary computing | the algorithmic structure of natural selection as far as I currently conceptualize them.
 
 * MMM(U) Evolution: Metaevolution, Multiimensionola Selection, Modularity and Unconvential Information Flows
 
