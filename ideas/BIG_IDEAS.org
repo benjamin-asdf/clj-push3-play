@@ -88,53 +88,7 @@ Updated TOL (subversive):
 
 [[edraw:data=H4sIANxpj2gAA71W32+bMBD+Vyz3ZZNKsUlK0yogbdKkPGyatEnZjzcKBqwQO7LdkOyv352BtM2SqQ8tAgO2L/6+++58ztxuK7JbN8omtHZucxeGbdtetZMrbaowYoyFYEE7k7tdI9XqlCG/vb0N/SwlrSxcndCYx5TUQla1gw67pmQrjJVaJZRfcZrOC1FaIouEisJkbYBdGF1nZiXM8/GABZkxuqWkm/3RIwz9xYBCycYIK8xWfLAbkbtvmZM6oUorAfBStB/1LqEBZwRbhDclRpQ/E9p9/PIf2kihYL3swWlKrDN6JYZVul7QO8kpKWXTJPSCM7zAgU3magLsvwDEZXCDSJc3ZHrJflMSpvOwowwf6HA6N0CT7Dzs3j/PyvcoyX2WryqjH1RxzK4nU5alB6ue/kgXe6AnmkZurDjyI3pcaPDksNYML1AH6Hm5dt07h/4kxg8cmDIP6J3vPAyEAuwH07y7+CeQ7491PI/f+YV6AgaZTNlyEkFjrI6e3ctoBi2GBiYR9p+bLDnMc5jnMM+xz9gShuK3Jz7xicYWQPrtRZp1WFHv16uGO2JDuMfwhDFyImZ9NH3klhjqkZiApsBmgWxGxcakx3hGB/wFqLHg2IdxGIpP5v4CjP6X9csRdizvEx/ACe/xnNg5go8gU3mtTULXsigarF1auaDM1rKBVLOZsgFUcln2E1b+ASg+Oy64eDLd2U2Ww+xQ/H0p9SUJcxWilH7fr+chop4iYF1m3KvjT+MOf4qHggMLRfIms3aox54CnJjiYAUkCQkIvO6lroQSVlryaQtHEXDHBV62jlf5JXYFqiTWNP1qZAXA+JKK6JJ8lqU4Qn6q3ksUOB/iJ0qeU3yPR57neY3CFMLmkJuZcnZ0Hr5oD0RgHWGdNgcab7l7YNMAKGxvLD6ERyPvn+th/4AAKWYjKRvdjuF4d4TVI1RXqIxjQWEhj7pCPm4cJ7MujpjIfqcPIQwraPDnPv0LetusYgQMAAA=]]
 
-
-
 ** Multi Dimensional Selection
-
-- Classical Fitness: A function that returns a value given a genome =G=:
-
-#+begin_src
-  fitness(G) = r ; r ∈ R
-#+end_src
-
-- In population genetics this function is =inclusive genetic fitness= (R. Trivers, W.D. Hamilton,...).
-
-- In coevolutionary games: "Aspects of play" (Bucci, Pollack, and De Jon 2004, De Jon and Pollack 2004).
-- Say chess has 1 directive: "Play good chess". This can mean be good at the endgame, controlling the center of the board, protecting the queen and so on.
-- 'Pareto coevolution' (Watson and Pollack 200a; Ficici and Pollcak 2001); Model different oponents, situations, contexts (the idea is to represent aspects of play):
-
-- Pareto dominance function: Individual A is pareto dominant over inidividual B, if it performs equal or better in all =contexts=.
-
-
- Alg (2): Pareto Dominance
-
-  #+begin_src
-
-    let context-sensitive-fitness(θ,O) = fitness of individual O in context θ
-
-    pareto-dominant?(A,B) = ∀(θ)∈contexts: context-sensitive-fitness(θ,A) >= context-sensitive-fitness(θ,B)
-
-  #+end_src
-
-
-- Because of metaevoution: =Mut= can use metaevolutionary heuristics as an apect of play. A gene could good when it's source code looks good.
-- Example: Length of the genome, elegance and beauty heuristics of genome.
-
-
-- Virtual fitness context: Since =Mut= is an adaptation, it could even use information processing
-  to filter candidate varations (=G1=, =G2=, ... ) of genome =G=.
-
-- Natural selection is licenced to steer mutation towards composable, elegant, beautiful systems.
-- In terms of genes eye view: A gene can advertise to the mutation operators "Look at me, I am an elegant, fit with many other genes, I am still short, I am good source code, ...".
-
-- Via epigenetics and unconventional genomic information flows, also: "I am useful across the tree of life (look at my epigenetic markers)".
-
-- fitness function in biology is still /inclusive genetic fitness/, but what are the fitness contexts? an open ended problem because of complex =Mut=.
-
-- NOTE: Not to be confused with 'multilevel selection'.
-
-----------------------------------
 
 Paraphrasing Dawkins, recent interview about how he writes a book:
 
@@ -147,9 +101,46 @@ Through this Darwinian process the book is created.
 - Dawkins' conception of natural selection clearly incoorperates multi dimensional fitness, i.e. /apects of play/, /perspectives/.
   The way he said it, it almost comes across as the defining aspect of fitness 'good from many perspectives'.
 - We need algorithms that reflect these aspects of natural selection, which are apparently obvious to the biologist.
-- Claim: Biologists already have a richer alg in mind for natural selection. Just the translation into computer algorithms isn't done yet.
+- I think Biologists already have a richer alg in mind for natural selection. Just the translation into computer algorithms isn't done yet.
 
 -----------------------------------------------------
+
+
+
+- Classical Fitness: A function that returns a value given a genome =G=:
+
+#+begin_src
+  fitness(G) = r ; r ∈ R
+#+end_src
+
+- In population genetics this function is =inclusive genetic fitness= (R. Trivers, W.D. Hamilton,...).
+- In coevolutionary games: "Aspects of play" (Bucci, Pollack, and De Jon 2004, De Jon and Pollack 2004).
+- Say chess has 1 directive: "Play good chess". This can mean be good at the endgame, controlling the center of the board, protecting the queen and so on.
+- 'Pareto coevolution' (Watson and Pollack 200a; Ficici and Pollcak 2001); Model different oponents, situations, contexts (the idea is to represent aspects of play):
+- Pareto dominance function: Individual A is pareto dominant over inidividual B, if it performs equal or better in all =contexts=.
+
+ Alg (2): Pareto Dominance
+
+  #+begin_src
+
+    let context-sensitive-fitness(θ,O) = fitness of individual O in context θ
+
+    pareto-dominant?(A,B) = ∀(θ)∈contexts: context-sensitive-fitness(θ,A) >= context-sensitive-fitness(θ,B)
+
+  #+end_src
+
+*** Metaevolutionary Aspects of Play
+
+- =Mut= could metaevolutionary heuristics as an apect of play. A gene could good when it's source code looks good.
+- Example: Length of the genome, elegance and beauty heuristics of genome.
+- In terms of genes eye view: A gene can advertise to the mutation operators "Look at me, I am an elegant, fit with many other genes, I am still short, I am good source code, ...".
+- Via epigenetics and unconventional genomic information flows, also: "I am useful across the tree of life (look at my epigenetic markers)".
+
+- fitness function in biology is still /inclusive genetic fitness/, but what are the fitness contexts? It is an open ended problem creative itself, when =Mut= is complex.
+
+------------------
+
+- Multidimensional selection is not to be confused with 'multilevel selection'.
 
 ** Unconventional Information Flows
 
