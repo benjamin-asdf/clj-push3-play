@@ -15,7 +15,7 @@ Adaptationism, Abstract replicator theory (Dawkins 1976, 1982) and Gradualism (D
 - Population Genetics models do not incoorparate symbiogenesis, horizontal gene transfer (Virusphere).
 - Population Genetics models are based on changes in gene frequency, but new genes have to come from somewhere.
 - I say that theoretical evolutionary biologists actually have a /richer set of algorithms in mind/ when they think of natural selection,
-  and the field of evolutionary computing is now in the process of plugging the fruit of exploring rich evolutionary algorithms.
+  and the field of evolutionary computing is now in the process of plugging the fruit of exploring /rich evolutionary algorithms/.
 
   Alg (1): Natural Selection v1
 
