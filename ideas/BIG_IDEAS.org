@@ -24,10 +24,10 @@ Adaptationism, Abstract replicator theory (Dawkins 1976, 1982) and Gradualism (D
 
   output: population'
 
-  natural-selction(population,threshold):
-     variations <- Mut(population)
+  naturalSelection(population,threshold):
+     variations := Mut(population)
      # differential survival
-     survivors <- filter((λ(individual) fitness(individual) >= threshold) , variations)
+     survivors := filter((λ(individual) fitness(individual) >= threshold) , variations)
      return survivors
 
 #+end_src
