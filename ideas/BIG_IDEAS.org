@@ -131,8 +131,9 @@ Through this Darwinian process the book is created.
 
 *** Metaevolutionary Aspects of Play
 
-- =Mut= could metaevolutionary heuristics as an apect of play. A gene could be good when it's source code looks good.
-- Example: Length of the genome, elegance and beauty heuristics of genome.
+- =Mut= could adapted to prefer elegant source code (elegance itself being an open ended problem).
+- I say a gene could be good when it's source code looks good.
+- Example: Length of the genome and other heuristics of good code.
 - In terms of genes eye view: A gene can advertise to the mutation operators "Look at me, I am an elegant, fit with many other genes, I am still short, I am good source code, ...".
 - Via epigenetics and unconventional genomic information flows, also: "I am useful across the tree of life (look at my epigenetic markers)".
 
