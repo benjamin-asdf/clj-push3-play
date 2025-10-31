@@ -22,7 +22,7 @@ Adaptationism, Abstract replicator theory (Dawkins 1976, 1982) and Gradualism (D
 #+begin_src
   # the non random survival of random variations
 
-  output: population'
+  output: populationNextGeneration
 
   naturalSelection(population,threshold):
      variations := Mut(population)
