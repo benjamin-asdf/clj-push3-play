@@ -3,7 +3,7 @@ To the extend it is not condensed down, It is not fleshed out.
 
 Cutting edges of evolutionary computing | the algorithmic structure of natural selection as far as I currently conceptualize them.
 
-* MMM(U) Evolution: Metaevolution, Multiimensionola Selection, Modularity and Unconvential Information Flows
+* MMM(U) Evolution: Metaevolution, Multidimensional Selection, Modularity and Unconvential Information Flows
 
 Adaptationism, Abstract replicator theory (Dawkins 1976, 1982) and Gradualism (Dennett 1995) are the best theory of life, but they
 
